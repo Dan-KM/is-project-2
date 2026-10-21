@@ -1,0 +1,37 @@
+name: system-db                       # Compose project name (prefixes the volume name)
+
+services:
+  postgres:
+    image: postgres:17                # Official image, pinned to a major version
+    container_name: system-postgres
+    restart: unless-stopped           # Restarts after reboot unless you stopped it
+
+    environment:
+      # The :? syntax makes Compose fail loudly if a variable is missing from .env
+      POSTGRES_USER: ${POSTGRES_USER:?set in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+      POSTGRES_DB: ${POSTGRES_DB:?set in .env}
+      # Not used by Postgres itself; passed in so 01-roles.sh can read them
+      OWNER_DB_PASSWORD: ${OWNER_DB_PASSWORD:?set in .env}
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:?set in .env}
+
+    ports:
+      # Binds to 127.0.0.1 only, so other devices on your Wi-Fi can't reach it.
+      # Plain "5432:5432" would listen on all network interfaces.
+      - "127.0.0.1:5432:5432"
+
+    volumes:
+      # Named volume: where Postgres keeps its data. Survives container removal.
+      - pgdata:/var/lib/postgresql/data
+      # Init scripts, read-only. Run only when the data directory is empty.
+      - ./init:/docker-entrypoint-initdb.d:ro
+
+    healthcheck:
+      # $$ escapes $, so the variable is expanded inside the container, not by Compose
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:

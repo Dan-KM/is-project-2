@@ -1,0 +1,43 @@
+# --- Docker & Git Metadata ---
+.git
+.gitignore
+.dockerignore
+Dockerfile*
+README.md
+
+# --- Secrets and Environments ---
+# Never copy local secrets into permanent image layers
+.env
+.env.*
+*.local
+*.pem
+*.key
+config/master.key
+
+# --- Heavy Dependencies ---
+# Dependencies should be installed *inside* the container via Dockerfile
+node_modules/
+bower_components/
+venv/
+.venv/
+ENV/
+vendor/pkg/
+
+# --- Build Artifacts & Caches ---
+dist/
+build/
+target/
+.next/
+.nuxt/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# --- Logs and System Garbage ---
+*.log
+logs/
+tmp/
+.DS_Store
+Thumbs.db
