@@ -4,12 +4,56 @@
   "target": "postgres",
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "roots": {
-    "Post": {
-      "model": "Post",
+    "crop": {
+      "model": "Crop",
       "namespace": "public"
     },
-    "User": {
-      "model": "User",
+    "crop_evolution": {
+      "model": "CropEvolution",
+      "namespace": "public"
+    },
+    "farm": {
+      "model": "Farm",
+      "namespace": "public"
+    },
+    "field": {
+      "model": "Field",
+      "namespace": "public"
+    },
+    "field_budget_transaction": {
+      "model": "FieldBudgetTransaction",
+      "namespace": "public"
+    },
+    "field_conditions": {
+      "model": "FieldConditions",
+      "namespace": "public"
+    },
+    "field_crop": {
+      "model": "FieldCrop",
+      "namespace": "public"
+    },
+    "irrigation_action_prediction": {
+      "model": "IrrigationActionPrediction",
+      "namespace": "public"
+    },
+    "irrigation_event": {
+      "model": "IrrigationEvent",
+      "namespace": "public"
+    },
+    "users": {
+      "model": "Users",
+      "namespace": "public"
+    },
+    "water_allocation": {
+      "model": "WaterAllocation",
+      "namespace": "public"
+    },
+    "water_transaction": {
+      "model": "WaterTransaction",
+      "namespace": "public"
+    },
+    "weather_data": {
+      "model": "WeatherData",
       "namespace": "public"
     }
   },
@@ -17,22 +61,8 @@
     "namespaces": {
       "public": {
         "models": {
-          "Post": {
+          "Crop": {
             "fields": {
-              "authorId": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/int4@1",
-                  "kind": "scalar"
-                }
-              },
-              "content": {
-                "nullable": true,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                }
-              },
               "createdAt": {
                 "nullable": false,
                 "type": {
@@ -40,17 +70,48 @@
                   "kind": "scalar"
                 }
               },
-              "id": {
+              "cropCoefficient": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 4,
+                    "scale": 3
+                  }
+                }
+              },
+              "cropId": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/int4@1",
+                  "codecId": "pg/uuid@1",
                   "kind": "scalar"
                 }
               },
-              "title": {
+              "cropName": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/text@1",
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 100
+                  }
+                }
+              },
+              "cropType": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 50
+                  }
+                }
+              },
+              "daysToMaturity": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
                   "kind": "scalar"
                 }
               },
@@ -63,49 +124,1586 @@
               }
             },
             "relations": {
-              "author": {
-                "cardinality": "N:1",
-                "nullable": false,
+              "fieldCrops": {
+                "cardinality": "1:N",
                 "on": {
                   "localFields": [
-                    "authorId"
+                    "cropId"
                   ],
                   "targetFields": [
-                    "id"
+                    "cropId"
                   ]
                 },
                 "to": {
-                  "model": "User",
+                  "model": "FieldCrop",
                   "namespace": "public"
                 }
               }
             },
             "storage": {
               "fields": {
-                "authorId": {
-                  "column": "authorId"
-                },
-                "content": {
-                  "column": "content"
-                },
                 "createdAt": {
-                  "column": "createdAt"
+                  "column": "created_at"
                 },
-                "id": {
-                  "column": "id"
+                "cropCoefficient": {
+                  "column": "crop_coefficient"
                 },
-                "title": {
-                  "column": "title"
+                "cropId": {
+                  "column": "crop_id"
+                },
+                "cropName": {
+                  "column": "crop_name"
+                },
+                "cropType": {
+                  "column": "crop_type"
+                },
+                "daysToMaturity": {
+                  "column": "days_to_maturity"
                 },
                 "updatedAt": {
-                  "column": "updatedAt"
+                  "column": "updated_at"
                 }
               },
               "namespaceId": "public",
-              "table": "Post"
+              "table": "crop"
             }
           },
-          "User": {
+          "CropEvolution": {
+            "fields": {
+              "daysSincePlanting": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "evolutionId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "fieldCropId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "growthStage": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 50
+                  }
+                }
+              },
+              "leafAreaIndex": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                }
+              },
+              "recordedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "rootZoneDepth": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 3
+                  }
+                }
+              }
+            },
+            "relations": {
+              "fieldCrop": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "fieldCropId"
+                  ],
+                  "targetFields": [
+                    "fieldCropId"
+                  ]
+                },
+                "to": {
+                  "model": "FieldCrop",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "daysSincePlanting": {
+                  "column": "days_since_planting"
+                },
+                "evolutionId": {
+                  "column": "evolution_id"
+                },
+                "fieldCropId": {
+                  "column": "field_crop_id"
+                },
+                "growthStage": {
+                  "column": "growth_stage"
+                },
+                "leafAreaIndex": {
+                  "column": "leaf_area_index"
+                },
+                "recordedAt": {
+                  "column": "recorded_at"
+                },
+                "rootZoneDepth": {
+                  "column": "root_zone_depth"
+                }
+              },
+              "namespaceId": "public",
+              "table": "crop_evolution"
+            }
+          },
+          "Farm": {
+            "fields": {
+              "area": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 10,
+                    "scale": 4
+                  }
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "farmAddress": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 255
+                  }
+                }
+              },
+              "farmId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "farmName": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 150
+                  }
+                }
+              },
+              "farmerId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "latitude": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 9,
+                    "scale": 6
+                  }
+                }
+              },
+              "longitude": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 9,
+                    "scale": 6
+                  }
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "farmer": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "farmerId"
+                  ],
+                  "targetFields": [
+                    "userId"
+                  ]
+                },
+                "to": {
+                  "model": "Users",
+                  "namespace": "public"
+                }
+              },
+              "fields": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "farmId"
+                  ],
+                  "targetFields": [
+                    "farmId"
+                  ]
+                },
+                "to": {
+                  "model": "Field",
+                  "namespace": "public"
+                }
+              },
+              "waterTransactions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "farmId"
+                  ],
+                  "targetFields": [
+                    "farmId"
+                  ]
+                },
+                "to": {
+                  "model": "WaterTransaction",
+                  "namespace": "public"
+                }
+              },
+              "weatherData": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "farmId"
+                  ],
+                  "targetFields": [
+                    "farmId"
+                  ]
+                },
+                "to": {
+                  "model": "WeatherData",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "area": {
+                  "column": "area"
+                },
+                "createdAt": {
+                  "column": "created_at"
+                },
+                "farmAddress": {
+                  "column": "farm_address"
+                },
+                "farmId": {
+                  "column": "farm_id"
+                },
+                "farmName": {
+                  "column": "farm_name"
+                },
+                "farmerId": {
+                  "column": "farmer_id"
+                },
+                "latitude": {
+                  "column": "latitude"
+                },
+                "longitude": {
+                  "column": "longitude"
+                },
+                "updatedAt": {
+                  "column": "updated_at"
+                }
+              },
+              "namespaceId": "public",
+              "table": "farm"
+            }
+          },
+          "Field": {
+            "fields": {
+              "area": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 10,
+                    "scale": 4
+                  }
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "farmId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "fieldId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "fieldName": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 150
+                  }
+                }
+              },
+              "fieldSlope": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                }
+              },
+              "remainingBudgetLitres": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              },
+              "soilType": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 50
+                  }
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "farm": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "farmId"
+                  ],
+                  "targetFields": [
+                    "farmId"
+                  ]
+                },
+                "to": {
+                  "model": "Farm",
+                  "namespace": "public"
+                }
+              },
+              "fieldBudgetTransactions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "fieldId"
+                  ],
+                  "targetFields": [
+                    "fieldId"
+                  ]
+                },
+                "to": {
+                  "model": "FieldBudgetTransaction",
+                  "namespace": "public"
+                }
+              },
+              "fieldConditions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "fieldId"
+                  ],
+                  "targetFields": [
+                    "fieldId"
+                  ]
+                },
+                "to": {
+                  "model": "FieldConditions",
+                  "namespace": "public"
+                }
+              },
+              "fieldCrops": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "fieldId"
+                  ],
+                  "targetFields": [
+                    "fieldId"
+                  ]
+                },
+                "to": {
+                  "model": "FieldCrop",
+                  "namespace": "public"
+                }
+              },
+              "waterAllocations": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "fieldId"
+                  ],
+                  "targetFields": [
+                    "fieldId"
+                  ]
+                },
+                "to": {
+                  "model": "WaterAllocation",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "area": {
+                  "column": "area"
+                },
+                "createdAt": {
+                  "column": "created_at"
+                },
+                "farmId": {
+                  "column": "farm_id"
+                },
+                "fieldId": {
+                  "column": "field_id"
+                },
+                "fieldName": {
+                  "column": "field_name"
+                },
+                "fieldSlope": {
+                  "column": "field_slope"
+                },
+                "remainingBudgetLitres": {
+                  "column": "remaining_budget_litres"
+                },
+                "soilType": {
+                  "column": "soil_type"
+                },
+                "updatedAt": {
+                  "column": "updated_at"
+                }
+              },
+              "namespaceId": "public",
+              "table": "field"
+            }
+          },
+          "FieldBudgetTransaction": {
+            "fields": {
+              "allocationPercentage": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                }
+              },
+              "budgetAfterLitres": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              },
+              "budgetTxnId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "changeLitres": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "fieldId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "reason": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 20
+                  }
+                }
+              },
+              "unallocatedBeforeLitres": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              },
+              "waterTransactionId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "field": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "fieldId"
+                  ],
+                  "targetFields": [
+                    "fieldId"
+                  ]
+                },
+                "to": {
+                  "model": "Field",
+                  "namespace": "public"
+                }
+              },
+              "waterTransaction": {
+                "cardinality": "N:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "waterTransactionId"
+                  ],
+                  "targetFields": [
+                    "transactionId"
+                  ]
+                },
+                "to": {
+                  "model": "WaterTransaction",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "allocationPercentage": {
+                  "column": "allocation_percentage"
+                },
+                "budgetAfterLitres": {
+                  "column": "budget_after_litres"
+                },
+                "budgetTxnId": {
+                  "column": "budget_txn_id"
+                },
+                "changeLitres": {
+                  "column": "change_litres"
+                },
+                "createdAt": {
+                  "column": "created_at"
+                },
+                "fieldId": {
+                  "column": "field_id"
+                },
+                "reason": {
+                  "column": "reason"
+                },
+                "unallocatedBeforeLitres": {
+                  "column": "unallocated_before_litres"
+                },
+                "waterTransactionId": {
+                  "column": "water_transaction_id"
+                }
+              },
+              "namespaceId": "public",
+              "table": "field_budget_transaction"
+            }
+          },
+          "FieldConditions": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "dateTime": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "daysSinceLastIrrigation": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "fieldConditionsId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "fieldId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "previousIrrigationAmount": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              },
+              "soilEc": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 7,
+                    "scale": 3
+                  }
+                }
+              },
+              "soilMoisture": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                }
+              },
+              "soilPh": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 4,
+                    "scale": 2
+                  }
+                }
+              },
+              "soilTemperature": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                }
+              },
+              "waterAvailability": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              },
+              "waterStressIndex": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 3
+                  }
+                }
+              }
+            },
+            "relations": {
+              "field": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "fieldId"
+                  ],
+                  "targetFields": [
+                    "fieldId"
+                  ]
+                },
+                "to": {
+                  "model": "Field",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "created_at"
+                },
+                "dateTime": {
+                  "column": "date_time"
+                },
+                "daysSinceLastIrrigation": {
+                  "column": "days_since_last_irrigation"
+                },
+                "fieldConditionsId": {
+                  "column": "field_conditions_id"
+                },
+                "fieldId": {
+                  "column": "field_id"
+                },
+                "previousIrrigationAmount": {
+                  "column": "previous_irrigation_amount"
+                },
+                "soilEc": {
+                  "column": "soil_ec"
+                },
+                "soilMoisture": {
+                  "column": "soil_moisture"
+                },
+                "soilPh": {
+                  "column": "soil_ph"
+                },
+                "soilTemperature": {
+                  "column": "soil_temperature"
+                },
+                "waterAvailability": {
+                  "column": "water_availability"
+                },
+                "waterStressIndex": {
+                  "column": "water_stress_index"
+                }
+              },
+              "namespaceId": "public",
+              "table": "field_conditions"
+            }
+          },
+          "FieldCrop": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "cropId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "fieldCropId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "fieldId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "isActive": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "plantingDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/date-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "crop": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "cropId"
+                  ],
+                  "targetFields": [
+                    "cropId"
+                  ]
+                },
+                "to": {
+                  "model": "Crop",
+                  "namespace": "public"
+                }
+              },
+              "cropEvolutions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "fieldCropId"
+                  ],
+                  "targetFields": [
+                    "fieldCropId"
+                  ]
+                },
+                "to": {
+                  "model": "CropEvolution",
+                  "namespace": "public"
+                }
+              },
+              "field": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "fieldId"
+                  ],
+                  "targetFields": [
+                    "fieldId"
+                  ]
+                },
+                "to": {
+                  "model": "Field",
+                  "namespace": "public"
+                }
+              },
+              "irrigationActionPredictions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "fieldCropId"
+                  ],
+                  "targetFields": [
+                    "fieldCropId"
+                  ]
+                },
+                "to": {
+                  "model": "IrrigationActionPrediction",
+                  "namespace": "public"
+                }
+              },
+              "irrigationEvents": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "fieldCropId"
+                  ],
+                  "targetFields": [
+                    "fieldCropId"
+                  ]
+                },
+                "to": {
+                  "model": "IrrigationEvent",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "created_at"
+                },
+                "cropId": {
+                  "column": "crop_id"
+                },
+                "fieldCropId": {
+                  "column": "field_crop_id"
+                },
+                "fieldId": {
+                  "column": "field_id"
+                },
+                "isActive": {
+                  "column": "is_active"
+                },
+                "plantingDate": {
+                  "column": "planting_date"
+                },
+                "updatedAt": {
+                  "column": "updated_at"
+                }
+              },
+              "namespaceId": "public",
+              "table": "field_crop"
+            }
+          },
+          "IrrigationActionPrediction": {
+            "fields": {
+              "ambientTemperature": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                }
+              },
+              "cropCoefficient": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 4,
+                    "scale": 3
+                  }
+                }
+              },
+              "cropType": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 50
+                  }
+                }
+              },
+              "dayOfYear": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int2@1",
+                  "kind": "scalar"
+                }
+              },
+              "daysSinceLastIrrigation": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "evaporationDemand": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 6,
+                    "scale": 3
+                  }
+                }
+              },
+              "fieldCropId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "fieldSlope": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                }
+              },
+              "growthStage": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 50
+                  }
+                }
+              },
+              "historicalSoilMoisture": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                }
+              },
+              "leafAreaIndex": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                }
+              },
+              "modelVersion": {
+                "nullable": true,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 50
+                  }
+                }
+              },
+              "predictedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "predictedIrrigationAction": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 50
+                  }
+                }
+              },
+              "predictionConfidence": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 4
+                  }
+                }
+              },
+              "predictionId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "previousIrrigationAmount": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              },
+              "rainfall24h": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 7,
+                    "scale": 2
+                  }
+                }
+              },
+              "rainfallForecast24h": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 7,
+                    "scale": 2
+                  }
+                }
+              },
+              "relativeHumidity": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                }
+              },
+              "rootZoneDepth": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 3
+                  }
+                }
+              },
+              "soilEc": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 7,
+                    "scale": 3
+                  }
+                }
+              },
+              "soilMoisture": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                }
+              },
+              "soilPh": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 4,
+                    "scale": 2
+                  }
+                }
+              },
+              "soilTemperature": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                }
+              },
+              "soilType": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 50
+                  }
+                }
+              },
+              "solarRadiation": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 7,
+                    "scale": 3
+                  }
+                }
+              },
+              "timeOfDay": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int2@1",
+                  "kind": "scalar"
+                }
+              },
+              "waterAvailability": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              },
+              "waterStressIndex": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 3
+                  }
+                }
+              },
+              "windSpeed": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                }
+              }
+            },
+            "relations": {
+              "fieldCrop": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "fieldCropId"
+                  ],
+                  "targetFields": [
+                    "fieldCropId"
+                  ]
+                },
+                "to": {
+                  "model": "FieldCrop",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "ambientTemperature": {
+                  "column": "ambient_temperature"
+                },
+                "cropCoefficient": {
+                  "column": "crop_coefficient"
+                },
+                "cropType": {
+                  "column": "crop_type"
+                },
+                "dayOfYear": {
+                  "column": "day_of_year"
+                },
+                "daysSinceLastIrrigation": {
+                  "column": "days_since_last_irrigation"
+                },
+                "evaporationDemand": {
+                  "column": "evaporation_demand"
+                },
+                "fieldCropId": {
+                  "column": "field_crop_id"
+                },
+                "fieldSlope": {
+                  "column": "field_slope"
+                },
+                "growthStage": {
+                  "column": "growth_stage"
+                },
+                "historicalSoilMoisture": {
+                  "column": "historical_soil_moisture"
+                },
+                "leafAreaIndex": {
+                  "column": "leaf_area_index"
+                },
+                "modelVersion": {
+                  "column": "model_version"
+                },
+                "predictedAt": {
+                  "column": "predicted_at"
+                },
+                "predictedIrrigationAction": {
+                  "column": "predicted_irrigation_action"
+                },
+                "predictionConfidence": {
+                  "column": "prediction_confidence"
+                },
+                "predictionId": {
+                  "column": "prediction_id"
+                },
+                "previousIrrigationAmount": {
+                  "column": "previous_irrigation_amount"
+                },
+                "rainfall24h": {
+                  "column": "rainfall_24h"
+                },
+                "rainfallForecast24h": {
+                  "column": "rainfall_forecast_24h"
+                },
+                "relativeHumidity": {
+                  "column": "relative_humidity"
+                },
+                "rootZoneDepth": {
+                  "column": "root_zone_depth"
+                },
+                "soilEc": {
+                  "column": "soil_ec"
+                },
+                "soilMoisture": {
+                  "column": "soil_moisture"
+                },
+                "soilPh": {
+                  "column": "soil_ph"
+                },
+                "soilTemperature": {
+                  "column": "soil_temperature"
+                },
+                "soilType": {
+                  "column": "soil_type"
+                },
+                "solarRadiation": {
+                  "column": "solar_radiation"
+                },
+                "timeOfDay": {
+                  "column": "time_of_day"
+                },
+                "waterAvailability": {
+                  "column": "water_availability"
+                },
+                "waterStressIndex": {
+                  "column": "water_stress_index"
+                },
+                "windSpeed": {
+                  "column": "wind_speed"
+                }
+              },
+              "namespaceId": "public",
+              "table": "irrigation_action_prediction"
+            }
+          },
+          "IrrigationEvent": {
+            "fields": {
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "eventId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "fieldCropId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "irrigationDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "notes": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "quantityUsedLitres": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              },
+              "transactionId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "fieldCrop": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "fieldCropId"
+                  ],
+                  "targetFields": [
+                    "fieldCropId"
+                  ]
+                },
+                "to": {
+                  "model": "FieldCrop",
+                  "namespace": "public"
+                }
+              },
+              "transaction": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "transactionId"
+                  ],
+                  "targetFields": [
+                    "transactionId"
+                  ]
+                },
+                "to": {
+                  "model": "WaterTransaction",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "createdAt": {
+                  "column": "created_at"
+                },
+                "eventId": {
+                  "column": "event_id"
+                },
+                "fieldCropId": {
+                  "column": "field_crop_id"
+                },
+                "irrigationDate": {
+                  "column": "irrigation_date"
+                },
+                "notes": {
+                  "column": "notes"
+                },
+                "quantityUsedLitres": {
+                  "column": "quantity_used_litres"
+                },
+                "transactionId": {
+                  "column": "transaction_id"
+                },
+                "updatedAt": {
+                  "column": "updated_at"
+                }
+              },
+              "namespaceId": "public",
+              "table": "irrigation_event"
+            }
+          },
+          "Users": {
             "fields": {
               "createdAt": {
                 "nullable": false,
@@ -117,22 +1715,51 @@
               "email": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 255
+                  }
                 }
               },
-              "id": {
+              "firstName": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/int4@1",
-                  "kind": "scalar"
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 100
+                  }
                 }
               },
-              "name": {
+              "lastName": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 100
+                  }
+                }
+              },
+              "passwordHash": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 255
+                  }
+                }
+              },
+              "phone": {
                 "nullable": true,
                 "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 20
+                  }
                 }
               },
               "updatedAt": {
@@ -142,27 +1769,37 @@
                   "kind": "scalar"
                 }
               },
-              "username": {
-                "nullable": true,
+              "userId": {
+                "nullable": false,
                 "type": {
-                  "codecId": "pg/text@1",
+                  "codecId": "pg/uuid@1",
                   "kind": "scalar"
+                }
+              },
+              "userRole": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 30
+                  }
                 }
               }
             },
             "relations": {
-              "posts": {
+              "farms": {
                 "cardinality": "1:N",
                 "on": {
                   "localFields": [
-                    "id"
+                    "userId"
                   ],
                   "targetFields": [
-                    "authorId"
+                    "farmerId"
                   ]
                 },
                 "to": {
-                  "model": "Post",
+                  "model": "Farm",
                   "namespace": "public"
                 }
               }
@@ -170,26 +1807,476 @@
             "storage": {
               "fields": {
                 "createdAt": {
-                  "column": "createdAt"
+                  "column": "created_at"
                 },
                 "email": {
                   "column": "email"
                 },
-                "id": {
-                  "column": "id"
+                "firstName": {
+                  "column": "first_name"
                 },
-                "name": {
-                  "column": "name"
+                "lastName": {
+                  "column": "last_name"
+                },
+                "passwordHash": {
+                  "column": "password_hash"
+                },
+                "phone": {
+                  "column": "phone"
                 },
                 "updatedAt": {
-                  "column": "updatedAt"
+                  "column": "updated_at"
                 },
-                "username": {
-                  "column": "username"
+                "userId": {
+                  "column": "user_id"
+                },
+                "userRole": {
+                  "column": "user_role"
                 }
               },
               "namespaceId": "public",
-              "table": "User"
+              "table": "users"
+            }
+          },
+          "WaterAllocation": {
+            "fields": {
+              "allocationId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "allocationPercentage": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "effectiveFrom": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "effectiveUntil": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "fieldId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "isActive": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "field": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "fieldId"
+                  ],
+                  "targetFields": [
+                    "fieldId"
+                  ]
+                },
+                "to": {
+                  "model": "Field",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "allocationId": {
+                  "column": "allocation_id"
+                },
+                "allocationPercentage": {
+                  "column": "allocation_percentage"
+                },
+                "createdAt": {
+                  "column": "created_at"
+                },
+                "effectiveFrom": {
+                  "column": "effective_from"
+                },
+                "effectiveUntil": {
+                  "column": "effective_until"
+                },
+                "fieldId": {
+                  "column": "field_id"
+                },
+                "isActive": {
+                  "column": "is_active"
+                },
+                "updatedAt": {
+                  "column": "updated_at"
+                }
+              },
+              "namespaceId": "public",
+              "table": "water_allocation"
+            }
+          },
+          "WaterTransaction": {
+            "fields": {
+              "currentQuantityLitres": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              },
+              "farmId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "ledgerSeq": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "notes": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "quantityLitres": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                }
+              },
+              "transactionDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "transactionId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "transactionType": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 20
+                  }
+                }
+              }
+            },
+            "relations": {
+              "farm": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "farmId"
+                  ],
+                  "targetFields": [
+                    "farmId"
+                  ]
+                },
+                "to": {
+                  "model": "Farm",
+                  "namespace": "public"
+                }
+              },
+              "fieldBudgetTransactions": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "transactionId"
+                  ],
+                  "targetFields": [
+                    "waterTransactionId"
+                  ]
+                },
+                "to": {
+                  "model": "FieldBudgetTransaction",
+                  "namespace": "public"
+                }
+              },
+              "irrigationEvent": {
+                "cardinality": "1:1",
+                "nullable": true,
+                "on": {
+                  "localFields": [
+                    "transactionId"
+                  ],
+                  "targetFields": [
+                    "transactionId"
+                  ]
+                },
+                "to": {
+                  "model": "IrrigationEvent",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "currentQuantityLitres": {
+                  "column": "current_quantity_litres"
+                },
+                "farmId": {
+                  "column": "farm_id"
+                },
+                "ledgerSeq": {
+                  "column": "ledger_seq"
+                },
+                "notes": {
+                  "column": "notes"
+                },
+                "quantityLitres": {
+                  "column": "quantity_litres"
+                },
+                "transactionDate": {
+                  "column": "transaction_date"
+                },
+                "transactionId": {
+                  "column": "transaction_id"
+                },
+                "transactionType": {
+                  "column": "transaction_type"
+                }
+              },
+              "namespaceId": "public",
+              "table": "water_transaction"
+            }
+          },
+          "WeatherData": {
+            "fields": {
+              "ambientTemperature": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "dateTime": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "evapotranspirationRate": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 6,
+                    "scale": 3
+                  }
+                }
+              },
+              "farmId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "rainfall24h": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 7,
+                    "scale": 2
+                  }
+                }
+              },
+              "rainfallForecast24h": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 7,
+                    "scale": 2
+                  }
+                }
+              },
+              "recordType": {
+                "nullable": false,
+                "type": {
+                  "codecId": "sql/varchar@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "length": 20
+                  }
+                }
+              },
+              "relativeHumidity": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                }
+              },
+              "solarRadiation": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 7,
+                    "scale": 3
+                  }
+                }
+              },
+              "weatherId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/uuid@1",
+                  "kind": "scalar"
+                }
+              },
+              "windSpeed": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/numeric@1",
+                  "kind": "scalar",
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                }
+              }
+            },
+            "relations": {
+              "farm": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "farmId"
+                  ],
+                  "targetFields": [
+                    "farmId"
+                  ]
+                },
+                "to": {
+                  "model": "Farm",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "ambientTemperature": {
+                  "column": "ambient_temperature"
+                },
+                "createdAt": {
+                  "column": "created_at"
+                },
+                "dateTime": {
+                  "column": "date_time"
+                },
+                "evapotranspirationRate": {
+                  "column": "evapotranspiration_rate"
+                },
+                "farmId": {
+                  "column": "farm_id"
+                },
+                "rainfall24h": {
+                  "column": "rainfall_24h"
+                },
+                "rainfallForecast24h": {
+                  "column": "rainfall_forecast_24h"
+                },
+                "recordType": {
+                  "column": "record_type"
+                },
+                "relativeHumidity": {
+                  "column": "relative_humidity"
+                },
+                "solarRadiation": {
+                  "column": "solar_radiation"
+                },
+                "weatherId": {
+                  "column": "weather_id"
+                },
+                "windSpeed": {
+                  "column": "wind_speed"
+                }
+              },
+              "namespaceId": "public",
+              "table": "weather_data"
             }
           }
         }
@@ -201,19 +2288,19 @@
       "public": {
         "entries": {
           "table": {
-            "Post": {
+            "crop": {
+              "checks": [
+                {
+                  "expression": "(crop_coefficient > (0)::numeric)",
+                  "name": "crop_crop_coefficient_check"
+                },
+                {
+                  "expression": "(days_to_maturity > 0)",
+                  "name": "crop_days_to_maturity_check"
+                }
+              ],
               "columns": {
-                "authorId": {
-                  "codecId": "pg/int4@1",
-                  "dataType": "pg/int4",
-                  "nullable": false
-                },
-                "content": {
-                  "codecId": "pg/text@1",
-                  "dataType": "pg/text",
-                  "nullable": true
-                },
-                "createdAt": {
+                "created_at": {
                   "codecId": "pg/timestamptz-string@1",
                   "dataType": "pg/timestamptz",
                   "default": {
@@ -222,67 +2309,1444 @@
                   },
                   "nullable": false
                 },
-                "id": {
-                  "codecId": "pg/int4@1",
-                  "dataType": "pg/int4",
+                "crop_coefficient": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 4,
+                    "scale": 3
+                  }
+                },
+                "crop_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
                   "default": {
-                    "expression": "autoincrement()",
+                    "expression": "gen_random_uuid()",
                     "kind": "function"
                   },
                   "nullable": false
                 },
-                "title": {
-                  "codecId": "pg/text@1",
-                  "dataType": "pg/text",
+                "crop_name": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 100
+                  }
+                },
+                "crop_type": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 50
+                  }
+                },
+                "days_to_maturity": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": true
+                },
+                "updated_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "crop_id"
+                ],
+                "name": "crop_pkey"
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "crop_name"
+                  ],
+                  "name": "crop_crop_name_key"
+                }
+              ]
+            },
+            "crop_evolution": {
+              "checks": [
+                {
+                  "expression": "(days_since_planting >= 0)",
+                  "name": "crop_evolution_days_since_planting_check"
+                },
+                {
+                  "expression": "(leaf_area_index >= (0)::numeric)",
+                  "name": "crop_evolution_leaf_area_index_check"
+                },
+                {
+                  "expression": "(root_zone_depth >= (0)::numeric)",
+                  "name": "crop_evolution_root_zone_depth_check"
+                }
+              ],
+              "columns": {
+                "days_since_planting": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": true
+                },
+                "evolution_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "default": {
+                    "expression": "gen_random_uuid()",
+                    "kind": "function"
+                  },
                   "nullable": false
                 },
-                "updatedAt": {
+                "field_crop_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "growth_stage": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 50
+                  }
+                },
+                "leaf_area_index": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                },
+                "recorded_at": {
                   "codecId": "pg/timestamptz-string@1",
                   "dataType": "pg/timestamptz",
                   "nullable": false
+                },
+                "root_zone_depth": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 3
+                  }
                 }
               },
               "foreignKeys": [
                 {
                   "index": {
-                    "name": "Post_authorId_idx_e47547ed"
+                    "name": "idx_crop_evolution_fc_time"
                   },
+                  "name": "crop_evolution_field_crop_id_fkey",
+                  "onDelete": "cascade",
                   "source": {
                     "columns": [
-                      "authorId"
+                      "field_crop_id"
                     ],
                     "namespaceId": "public",
-                    "tableName": "Post"
+                    "tableName": "crop_evolution"
                   },
                   "target": {
                     "columns": [
-                      "id"
+                      "field_crop_id"
                     ],
                     "namespaceId": "public",
-                    "tableName": "User"
+                    "tableName": "field_crop"
                   }
                 }
               ],
               "indexes": [
                 {
                   "columns": [
-                    "authorId"
+                    "field_crop_id",
+                    "recorded_at"
                   ],
-                  "name": "Post_authorId_idx_e47547ed",
-                  "prefix": "Post_authorId_idx",
+                  "name": "idx_crop_evolution_fc_time",
                   "unique": false
                 }
               ],
               "primaryKey": {
                 "columns": [
-                  "id"
-                ]
+                  "evolution_id"
+                ],
+                "name": "crop_evolution_pkey"
               },
               "uniques": []
             },
-            "User": {
+            "farm": {
+              "checks": [
+                {
+                  "expression": "(area > (0)::numeric)",
+                  "name": "farm_area_check"
+                },
+                {
+                  "expression": "((latitude >= ('-90'::integer)::numeric) AND (latitude <= (90)::numeric))",
+                  "name": "farm_latitude_check"
+                },
+                {
+                  "expression": "((longitude >= ('-180'::integer)::numeric) AND (longitude <= (180)::numeric))",
+                  "name": "farm_longitude_check"
+                }
+              ],
               "columns": {
-                "createdAt": {
+                "area": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 10,
+                    "scale": 4
+                  }
+                },
+                "created_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "farm_address": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 255
+                  }
+                },
+                "farm_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "default": {
+                    "expression": "gen_random_uuid()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "farm_name": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 150
+                  }
+                },
+                "farmer_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "latitude": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 9,
+                    "scale": 6
+                  }
+                },
+                "longitude": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 9,
+                    "scale": 6
+                  }
+                },
+                "updated_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "idx_farm_farmer"
+                  },
+                  "name": "farm_farmer_id_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "farmer_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "farm"
+                  },
+                  "target": {
+                    "columns": [
+                      "user_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "users"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "farmer_id"
+                  ],
+                  "name": "idx_farm_farmer",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "farm_id"
+                ],
+                "name": "farm_pkey"
+              },
+              "uniques": []
+            },
+            "field": {
+              "checks": [
+                {
+                  "expression": "(area > (0)::numeric)",
+                  "name": "field_area_check"
+                },
+                {
+                  "expression": "(field_slope >= (0)::numeric)",
+                  "name": "field_field_slope_check"
+                },
+                {
+                  "expression": "(remaining_budget_litres >= (0)::numeric)",
+                  "name": "field_remaining_budget_litres_check"
+                }
+              ],
+              "columns": {
+                "area": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 10,
+                    "scale": 4
+                  }
+                },
+                "created_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "farm_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "field_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "default": {
+                    "expression": "gen_random_uuid()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "field_name": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 150
+                  }
+                },
+                "field_slope": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                },
+                "remaining_budget_litres": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                },
+                "soil_type": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 50
+                  }
+                },
+                "updated_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "idx_field_farm"
+                  },
+                  "name": "field_farm_id_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "farm_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "field"
+                  },
+                  "target": {
+                    "columns": [
+                      "farm_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "farm"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "farm_id"
+                  ],
+                  "name": "idx_field_farm",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "field_id"
+                ],
+                "name": "field_pkey"
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "farm_id",
+                    "field_name"
+                  ],
+                  "name": "field_farm_id_field_name_key"
+                }
+              ]
+            },
+            "field_budget_transaction": {
+              "checks": [
+                {
+                  "expression": "((allocation_percentage >= (0)::numeric) AND (allocation_percentage <= (100)::numeric))",
+                  "name": "field_budget_transaction_allocation_percentage_check"
+                },
+                {
+                  "expression": "(budget_after_litres >= (0)::numeric)",
+                  "name": "field_budget_transaction_budget_after_litres_check"
+                },
+                {
+                  "expression": "((((reason)::text = 'ALLOCATE'::text) AND (change_litres >= (0)::numeric)) OR (((reason)::text = ANY ((ARRAY['IRRIGATE'::character varying, 'RELEASE'::character varying])::text[])) AND (change_litres <= (0)::numeric)))",
+                  "name": "field_budget_transaction_check"
+                },
+                {
+                  "expression": "((reason)::text = ANY ((ARRAY['ALLOCATE'::character varying, 'IRRIGATE'::character varying, 'RELEASE'::character varying])::text[]))",
+                  "name": "field_budget_transaction_reason_check"
+                },
+                {
+                  "expression": "(unallocated_before_litres >= (0)::numeric)",
+                  "name": "field_budget_transaction_unallocated_before_litres_check"
+                }
+              ],
+              "columns": {
+                "allocation_percentage": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                },
+                "budget_after_litres": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                },
+                "budget_txn_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "default": {
+                    "expression": "gen_random_uuid()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "change_litres": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                },
+                "created_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "field_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "reason": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 20
+                  }
+                },
+                "unallocated_before_litres": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                },
+                "water_transaction_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": true
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "idx_budget_txn_field_time"
+                  },
+                  "name": "field_budget_transaction_field_id_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "field_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "field_budget_transaction"
+                  },
+                  "target": {
+                    "columns": [
+                      "field_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "field"
+                  }
+                },
+                {
+                  "index": {
+                    "name": "idx_budget_txn_water_txn"
+                  },
+                  "name": "field_budget_transaction_water_transaction_id_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "water_transaction_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "field_budget_transaction"
+                  },
+                  "target": {
+                    "columns": [
+                      "transaction_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "water_transaction"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "field_id",
+                    "created_at"
+                  ],
+                  "name": "idx_budget_txn_field_time",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "water_transaction_id"
+                  ],
+                  "name": "idx_budget_txn_water_txn",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "budget_txn_id"
+                ],
+                "name": "field_budget_transaction_pkey"
+              },
+              "uniques": []
+            },
+            "field_conditions": {
+              "checks": [
+                {
+                  "expression": "(days_since_last_irrigation >= 0)",
+                  "name": "field_conditions_days_since_last_irrigation_check"
+                },
+                {
+                  "expression": "(previous_irrigation_amount >= (0)::numeric)",
+                  "name": "field_conditions_previous_irrigation_amount_check"
+                },
+                {
+                  "expression": "(soil_ec >= (0)::numeric)",
+                  "name": "field_conditions_soil_ec_check"
+                },
+                {
+                  "expression": "((soil_moisture >= (0)::numeric) AND (soil_moisture <= (100)::numeric))",
+                  "name": "field_conditions_soil_moisture_check"
+                },
+                {
+                  "expression": "((soil_ph >= (0)::numeric) AND (soil_ph <= (14)::numeric))",
+                  "name": "field_conditions_soil_ph_check"
+                },
+                {
+                  "expression": "(water_availability >= (0)::numeric)",
+                  "name": "field_conditions_water_availability_check"
+                }
+              ],
+              "columns": {
+                "created_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "date_time": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "days_since_last_irrigation": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": true
+                },
+                "field_conditions_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "default": {
+                    "expression": "gen_random_uuid()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "field_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "previous_irrigation_amount": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                },
+                "soil_ec": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 7,
+                    "scale": 3
+                  }
+                },
+                "soil_moisture": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                },
+                "soil_ph": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 4,
+                    "scale": 2
+                  }
+                },
+                "soil_temperature": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                },
+                "water_availability": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                },
+                "water_stress_index": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 3
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "idx_field_conditions_field_time"
+                  },
+                  "name": "field_conditions_field_id_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "field_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "field_conditions"
+                  },
+                  "target": {
+                    "columns": [
+                      "field_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "field"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "field_id",
+                    "date_time"
+                  ],
+                  "name": "idx_field_conditions_field_time",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "field_conditions_id"
+                ],
+                "name": "field_conditions_pkey"
+              },
+              "uniques": []
+            },
+            "field_crop": {
+              "columns": {
+                "created_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "crop_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "field_crop_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "default": {
+                    "expression": "gen_random_uuid()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "field_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "is_active": {
+                  "codecId": "pg/bool@1",
+                  "dataType": "pg/bool",
+                  "default": {
+                    "kind": "literal",
+                    "value": true
+                  },
+                  "nullable": false
+                },
+                "planting_date": {
+                  "codecId": "pg/date-string@1",
+                  "dataType": "pg/date",
+                  "nullable": false
+                },
+                "updated_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "idx_field_crop_crop"
+                  },
+                  "name": "field_crop_crop_id_fkey",
+                  "onDelete": "restrict",
+                  "source": {
+                    "columns": [
+                      "crop_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "field_crop"
+                  },
+                  "target": {
+                    "columns": [
+                      "crop_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "crop"
+                  }
+                },
+                {
+                  "index": {
+                    "name": "idx_field_crop_field"
+                  },
+                  "name": "field_crop_field_id_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "field_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "field_crop"
+                  },
+                  "target": {
+                    "columns": [
+                      "field_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "field"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "field_id"
+                  ],
+                  "name": "idx_field_crop_active",
+                  "unique": false,
+                  "where": "is_active"
+                },
+                {
+                  "columns": [
+                    "crop_id"
+                  ],
+                  "name": "idx_field_crop_crop",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "field_id"
+                  ],
+                  "name": "idx_field_crop_field",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "field_crop_id"
+                ],
+                "name": "field_crop_pkey"
+              },
+              "uniques": []
+            },
+            "irrigation_action_prediction": {
+              "checks": [
+                {
+                  "expression": "(crop_coefficient > (0)::numeric)",
+                  "name": "irrigation_action_prediction_crop_coefficient_check"
+                },
+                {
+                  "expression": "((day_of_year >= 1) AND (day_of_year <= 366))",
+                  "name": "irrigation_action_prediction_day_of_year_check"
+                },
+                {
+                  "expression": "(days_since_last_irrigation >= 0)",
+                  "name": "irrigation_action_prediction_days_since_last_irrigation_check"
+                },
+                {
+                  "expression": "(evaporation_demand >= (0)::numeric)",
+                  "name": "irrigation_action_prediction_evaporation_demand_check"
+                },
+                {
+                  "expression": "(field_slope >= (0)::numeric)",
+                  "name": "irrigation_action_prediction_field_slope_check"
+                },
+                {
+                  "expression": "((historical_soil_moisture >= (0)::numeric) AND (historical_soil_moisture <= (100)::numeric))",
+                  "name": "irrigation_action_prediction_historical_soil_moisture_check"
+                },
+                {
+                  "expression": "(leaf_area_index >= (0)::numeric)",
+                  "name": "irrigation_action_prediction_leaf_area_index_check"
+                },
+                {
+                  "expression": "((prediction_confidence >= (0)::numeric) AND (prediction_confidence <= (1)::numeric))",
+                  "name": "irrigation_action_prediction_prediction_confidence_check"
+                },
+                {
+                  "expression": "(previous_irrigation_amount >= (0)::numeric)",
+                  "name": "irrigation_action_prediction_previous_irrigation_amount_check"
+                },
+                {
+                  "expression": "(rainfall_24h >= (0)::numeric)",
+                  "name": "irrigation_action_prediction_rainfall_24h_check"
+                },
+                {
+                  "expression": "(rainfall_forecast_24h >= (0)::numeric)",
+                  "name": "irrigation_action_prediction_rainfall_forecast_24h_check"
+                },
+                {
+                  "expression": "((relative_humidity >= (0)::numeric) AND (relative_humidity <= (100)::numeric))",
+                  "name": "irrigation_action_prediction_relative_humidity_check"
+                },
+                {
+                  "expression": "(root_zone_depth >= (0)::numeric)",
+                  "name": "irrigation_action_prediction_root_zone_depth_check"
+                },
+                {
+                  "expression": "(soil_ec >= (0)::numeric)",
+                  "name": "irrigation_action_prediction_soil_ec_check"
+                },
+                {
+                  "expression": "((soil_moisture >= (0)::numeric) AND (soil_moisture <= (100)::numeric))",
+                  "name": "irrigation_action_prediction_soil_moisture_check"
+                },
+                {
+                  "expression": "((soil_ph >= (0)::numeric) AND (soil_ph <= (14)::numeric))",
+                  "name": "irrigation_action_prediction_soil_ph_check"
+                },
+                {
+                  "expression": "(solar_radiation >= (0)::numeric)",
+                  "name": "irrigation_action_prediction_solar_radiation_check"
+                },
+                {
+                  "expression": "((time_of_day >= 0) AND (time_of_day <= 23))",
+                  "name": "irrigation_action_prediction_time_of_day_check"
+                },
+                {
+                  "expression": "(water_availability >= (0)::numeric)",
+                  "name": "irrigation_action_prediction_water_availability_check"
+                },
+                {
+                  "expression": "(wind_speed >= (0)::numeric)",
+                  "name": "irrigation_action_prediction_wind_speed_check"
+                }
+              ],
+              "columns": {
+                "ambient_temperature": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                },
+                "crop_coefficient": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 4,
+                    "scale": 3
+                  }
+                },
+                "crop_type": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 50
+                  }
+                },
+                "day_of_year": {
+                  "codecId": "pg/int2@1",
+                  "dataType": "pg/int2",
+                  "nullable": true
+                },
+                "days_since_last_irrigation": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": true
+                },
+                "evaporation_demand": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 6,
+                    "scale": 3
+                  }
+                },
+                "field_crop_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "field_slope": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                },
+                "growth_stage": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 50
+                  }
+                },
+                "historical_soil_moisture": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                },
+                "leaf_area_index": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                },
+                "model_version": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": true,
+                  "typeParams": {
+                    "length": 50
+                  }
+                },
+                "predicted_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "predicted_irrigation_action": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 50
+                  }
+                },
+                "prediction_confidence": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 4
+                  }
+                },
+                "prediction_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "default": {
+                    "expression": "gen_random_uuid()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "previous_irrigation_amount": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                },
+                "rainfall_24h": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 7,
+                    "scale": 2
+                  }
+                },
+                "rainfall_forecast_24h": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 7,
+                    "scale": 2
+                  }
+                },
+                "relative_humidity": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                },
+                "root_zone_depth": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 3
+                  }
+                },
+                "soil_ec": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 7,
+                    "scale": 3
+                  }
+                },
+                "soil_moisture": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                },
+                "soil_ph": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 4,
+                    "scale": 2
+                  }
+                },
+                "soil_temperature": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                },
+                "soil_type": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 50
+                  }
+                },
+                "solar_radiation": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 7,
+                    "scale": 3
+                  }
+                },
+                "time_of_day": {
+                  "codecId": "pg/int2@1",
+                  "dataType": "pg/int2",
+                  "nullable": true
+                },
+                "water_availability": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                },
+                "water_stress_index": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 3
+                  }
+                },
+                "wind_speed": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "idx_prediction_fc_time"
+                  },
+                  "name": "irrigation_action_prediction_field_crop_id_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "field_crop_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "irrigation_action_prediction"
+                  },
+                  "target": {
+                    "columns": [
+                      "field_crop_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "field_crop"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "field_crop_id",
+                    "predicted_at"
+                  ],
+                  "name": "idx_prediction_fc_time",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "model_version"
+                  ],
+                  "name": "idx_prediction_model",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "prediction_id"
+                ],
+                "name": "irrigation_action_prediction_pkey"
+              },
+              "uniques": []
+            },
+            "irrigation_event": {
+              "checks": [
+                {
+                  "expression": "(quantity_used_litres > (0)::numeric)",
+                  "name": "irrigation_event_quantity_used_litres_check"
+                }
+              ],
+              "columns": {
+                "created_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "event_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "default": {
+                    "expression": "gen_random_uuid()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "field_crop_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "irrigation_date": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "notes": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "quantity_used_litres": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                },
+                "transaction_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "updated_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "idx_irrigation_event_fc_date"
+                  },
+                  "name": "irrigation_event_field_crop_id_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "field_crop_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "irrigation_event"
+                  },
+                  "target": {
+                    "columns": [
+                      "field_crop_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "field_crop"
+                  }
+                },
+                {
+                  "index": {
+                    "unique": [
+                      "transaction_id"
+                    ]
+                  },
+                  "name": "irrigation_event_transaction_id_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "transaction_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "irrigation_event"
+                  },
+                  "target": {
+                    "columns": [
+                      "transaction_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "water_transaction"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "field_crop_id",
+                    "irrigation_date"
+                  ],
+                  "name": "idx_irrigation_event_fc_date",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "event_id"
+                ],
+                "name": "irrigation_event_pkey"
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "transaction_id"
+                  ],
+                  "name": "irrigation_event_transaction_id_key"
+                }
+              ]
+            },
+            "users": {
+              "columns": {
+                "created_at": {
                   "codecId": "pg/timestamptz-string@1",
                   "dataType": "pg/timestamptz",
                   "default": {
@@ -292,47 +3756,529 @@
                   "nullable": false
                 },
                 "email": {
-                  "codecId": "pg/text@1",
-                  "dataType": "pg/text",
-                  "nullable": false
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 255
+                  }
                 },
-                "id": {
-                  "codecId": "pg/int4@1",
-                  "dataType": "pg/int4",
+                "first_name": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 100
+                  }
+                },
+                "last_name": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 100
+                  }
+                },
+                "password_hash": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 255
+                  }
+                },
+                "phone": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": true,
+                  "typeParams": {
+                    "length": 20
+                  }
+                },
+                "updated_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
                   "default": {
-                    "expression": "autoincrement()",
+                    "expression": "now()",
                     "kind": "function"
                   },
                   "nullable": false
                 },
-                "name": {
-                  "codecId": "pg/text@1",
-                  "dataType": "pg/text",
-                  "nullable": true
-                },
-                "updatedAt": {
-                  "codecId": "pg/timestamptz-string@1",
-                  "dataType": "pg/timestamptz",
+                "user_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "default": {
+                    "expression": "gen_random_uuid()",
+                    "kind": "function"
+                  },
                   "nullable": false
                 },
-                "username": {
-                  "codecId": "pg/text@1",
-                  "dataType": "pg/text",
-                  "nullable": true
+                "user_role": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 30
+                  }
                 }
               },
               "foreignKeys": [],
-              "indexes": [],
+              "indexes": [
+                {
+                  "expression": "lower(email::text)",
+                  "name": "uq_users_email_lower",
+                  "unique": true
+                }
+              ],
               "primaryKey": {
                 "columns": [
-                  "id"
-                ]
+                  "user_id"
+                ],
+                "name": "users_pkey"
               },
               "uniques": [
                 {
                   "columns": [
                     "email"
-                  ]
+                  ],
+                  "name": "users_email_key"
+                }
+              ]
+            },
+            "water_allocation": {
+              "checks": [
+                {
+                  "expression": "((allocation_percentage >= (0)::numeric) AND (allocation_percentage <= (100)::numeric))",
+                  "name": "water_allocation_allocation_percentage_check"
+                },
+                {
+                  "expression": "((effective_until IS NULL) OR (effective_until > effective_from))",
+                  "name": "water_allocation_check"
+                },
+                {
+                  "expression": "((NOT is_active) OR (effective_until IS NULL))",
+                  "name": "water_allocation_check1"
+                }
+              ],
+              "columns": {
+                "allocation_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "default": {
+                    "expression": "gen_random_uuid()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "allocation_percentage": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                },
+                "created_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "effective_from": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "effective_until": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": true
+                },
+                "field_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "is_active": {
+                  "codecId": "pg/bool@1",
+                  "dataType": "pg/bool",
+                  "default": {
+                    "kind": "literal",
+                    "value": true
+                  },
+                  "nullable": false
+                },
+                "updated_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "name": "water_allocation_field_id_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "field_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "water_allocation"
+                  },
+                  "target": {
+                    "columns": [
+                      "field_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "field"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "field_id"
+                  ],
+                  "name": "uq_water_allocation_active_field",
+                  "unique": true,
+                  "where": "is_active"
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "allocation_id"
+                ],
+                "name": "water_allocation_pkey"
+              },
+              "uniques": []
+            },
+            "water_transaction": {
+              "checks": [
+                {
+                  "expression": "((((transaction_type)::text = 'INITIAL_ENTRY'::text) AND (quantity_litres >= (0)::numeric)) OR (((transaction_type)::text = ANY ((ARRAY['REFILL'::character varying, 'IRRIGATION'::character varying])::text[])) AND (quantity_litres > (0)::numeric)))",
+                  "name": "chk_water_txn_quantity"
+                },
+                {
+                  "expression": "(current_quantity_litres >= (0)::numeric)",
+                  "name": "water_transaction_current_quantity_litres_check"
+                },
+                {
+                  "expression": "((transaction_type)::text = ANY ((ARRAY['INITIAL_ENTRY'::character varying, 'REFILL'::character varying, 'IRRIGATION'::character varying])::text[]))",
+                  "name": "water_transaction_transaction_type_check"
+                }
+              ],
+              "columns": {
+                "current_quantity_litres": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                },
+                "farm_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "ledger_seq": {
+                  "codecId": "pg/int4@1",
+                  "dataType": "pg/int4",
+                  "nullable": false
+                },
+                "notes": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "quantity_litres": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": false,
+                  "typeParams": {
+                    "precision": 12,
+                    "scale": 2
+                  }
+                },
+                "transaction_date": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "transaction_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "default": {
+                    "expression": "gen_random_uuid()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "transaction_type": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 20
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "unique": [
+                      "farm_id",
+                      "ledger_seq"
+                    ]
+                  },
+                  "name": "water_transaction_farm_id_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "farm_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "water_transaction"
+                  },
+                  "target": {
+                    "columns": [
+                      "farm_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "farm"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "farm_id",
+                    "transaction_date"
+                  ],
+                  "name": "idx_water_txn_farm_date",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "farm_id"
+                  ],
+                  "name": "uq_water_txn_one_initial",
+                  "unique": true,
+                  "where": "((transaction_type)::text = 'INITIAL_ENTRY'::text)"
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "transaction_id"
+                ],
+                "name": "water_transaction_pkey"
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "farm_id",
+                    "ledger_seq"
+                  ],
+                  "name": "uq_water_txn_farm_seq"
+                }
+              ]
+            },
+            "weather_data": {
+              "checks": [
+                {
+                  "expression": "(evapotranspiration_rate >= (0)::numeric)",
+                  "name": "weather_data_evapotranspiration_rate_check"
+                },
+                {
+                  "expression": "(rainfall_24h >= (0)::numeric)",
+                  "name": "weather_data_rainfall_24h_check"
+                },
+                {
+                  "expression": "(rainfall_forecast_24h >= (0)::numeric)",
+                  "name": "weather_data_rainfall_forecast_24h_check"
+                },
+                {
+                  "expression": "((record_type)::text = ANY ((ARRAY['historical'::character varying, 'observed'::character varying, 'forecast'::character varying])::text[]))",
+                  "name": "weather_data_record_type_check"
+                },
+                {
+                  "expression": "((relative_humidity >= (0)::numeric) AND (relative_humidity <= (100)::numeric))",
+                  "name": "weather_data_relative_humidity_check"
+                },
+                {
+                  "expression": "(solar_radiation >= (0)::numeric)",
+                  "name": "weather_data_solar_radiation_check"
+                },
+                {
+                  "expression": "(wind_speed >= (0)::numeric)",
+                  "name": "weather_data_wind_speed_check"
+                }
+              ],
+              "columns": {
+                "ambient_temperature": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                },
+                "created_at": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "date_time": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "evapotranspiration_rate": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 6,
+                    "scale": 3
+                  }
+                },
+                "farm_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "nullable": false
+                },
+                "rainfall_24h": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 7,
+                    "scale": 2
+                  }
+                },
+                "rainfall_forecast_24h": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 7,
+                    "scale": 2
+                  }
+                },
+                "record_type": {
+                  "codecId": "sql/varchar@1",
+                  "dataType": "pg/varchar",
+                  "nullable": false,
+                  "typeParams": {
+                    "length": 20
+                  }
+                },
+                "relative_humidity": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                },
+                "solar_radiation": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 7,
+                    "scale": 3
+                  }
+                },
+                "weather_id": {
+                  "codecId": "pg/uuid@1",
+                  "dataType": "pg/uuid",
+                  "default": {
+                    "expression": "gen_random_uuid()",
+                    "kind": "function"
+                  },
+                  "nullable": false
+                },
+                "wind_speed": {
+                  "codecId": "pg/numeric@1",
+                  "dataType": "pg/numeric",
+                  "nullable": true,
+                  "typeParams": {
+                    "precision": 5,
+                    "scale": 2
+                  }
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "unique": [
+                      "farm_id",
+                      "date_time",
+                      "record_type"
+                    ]
+                  },
+                  "name": "weather_data_farm_id_fkey",
+                  "onDelete": "cascade",
+                  "source": {
+                    "columns": [
+                      "farm_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "weather_data"
+                  },
+                  "target": {
+                    "columns": [
+                      "farm_id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "farm"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "farm_id",
+                    "date_time"
+                  ],
+                  "name": "idx_weather_farm_time",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "weather_id"
+                ],
+                "name": "weather_data_pkey"
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "farm_id",
+                    "date_time",
+                    "record_type"
+                  ],
+                  "name": "weather_data_farm_id_date_time_record_type_key"
                 }
               ]
             }
@@ -342,44 +4288,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "a51b4833fdaffe730572670ccc27dd89af7e0726ab3de7f428d21702d687cc15"
-  },
-  "execution": {
-    "executionHash": "4e88564095b5e0ba7904ffdba3c563ef916d87688c8c483c67055f71a9194f0f",
-    "mutations": {
-      "defaults": [
-        {
-          "onCreate": {
-            "id": "timestampNow",
-            "kind": "generator"
-          },
-          "onUpdate": {
-            "id": "timestampNow",
-            "kind": "generator"
-          },
-          "ref": {
-            "entry": "Post",
-            "field": "updatedAt",
-            "namespace": "public"
-          }
-        },
-        {
-          "onCreate": {
-            "id": "timestampNow",
-            "kind": "generator"
-          },
-          "onUpdate": {
-            "id": "timestampNow",
-            "kind": "generator"
-          },
-          "ref": {
-            "entry": "User",
-            "field": "updatedAt",
-            "namespace": "public"
-          }
-        }
-      ]
-    }
+    "storageHash": "b01c49a5a976e0e958f87c6724d8b39e584c6637f3f0c12750ac12423f6e14a3"
   },
   "capabilities": {
     "postgres": {
