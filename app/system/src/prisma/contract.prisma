@@ -1,21 +1,307 @@
 // use prisma-8
+// Contract inferred from the live database schema. Edit as needed, then run `prisma contract emit`.
 
-model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  username  String?
-  name      String?
-  posts     Post[]
-  createdAt TimestamptzString @default(now())
-  updatedAt temporal.updatedAtString()
+model Crop {
+  cropId          Uuid              @id(map: "crop_pkey") @default(sql`gen_random_uuid()`) @map("crop_id")
+  cropName        VarChar(100)      @unique(map: "crop_crop_name_key") @map("crop_name")
+  cropType        VarChar(50)       @map("crop_type")
+  cropCoefficient Numeric(4, 3)?    @map("crop_coefficient")
+  daysToMaturity  Int?              @map("days_to_maturity")
+  createdAt       TimestamptzString @default(now()) @map("created_at")
+  updatedAt       TimestamptzString @default(now()) @map("updated_at")
+  fieldCrops      FieldCrop[]
+
+  @@check(expression: sql`(crop_coefficient > (0)::numeric)`, map: "crop_crop_coefficient_check")
+  @@check(expression: sql`(days_to_maturity > 0)`, map: "crop_days_to_maturity_check")
+  @@map("crop")
 }
 
-model Post {
-  id        Int      @id @default(autoincrement())
-  title     String
-  content   String?
-  author    User     @relation(fields: [authorId], references: [id])
-  authorId  Int
-  createdAt TimestamptzString @default(now())
-  updatedAt temporal.updatedAtString()
+model Users {
+  userId       Uuid              @id(map: "users_pkey") @default(sql`gen_random_uuid()`) @map("user_id")
+  userRole     VarChar(30)       @map("user_role")
+  firstName    VarChar(100)      @map("first_name")
+  lastName     VarChar(100)      @map("last_name")
+  email        VarChar(255)      @unique(map: "users_email_key")
+  phone        VarChar(20)?
+  passwordHash VarChar(255)      @map("password_hash")
+  createdAt    TimestamptzString @default(now()) @map("created_at")
+  updatedAt    TimestamptzString @default(now()) @map("updated_at")
+  farms        Farm[]
+
+  @@index(expression: sql`lower(email::text)`, map: "uq_users_email_lower", unique: true)
+  @@map("users")
+}
+
+model Farm {
+  farmId            Uuid               @id(map: "farm_pkey") @default(sql`gen_random_uuid()`) @map("farm_id")
+  farmerId          Uuid               @map("farmer_id")
+  farmName          VarChar(150)       @map("farm_name")
+  farmAddress       VarChar(255)       @map("farm_address")
+  latitude          Numeric(9, 6)
+  longitude         Numeric(9, 6)
+  area              Numeric(10, 4)
+  createdAt         TimestamptzString  @default(now()) @map("created_at")
+  updatedAt         TimestamptzString  @default(now()) @map("updated_at")
+  fields            Field[]
+  waterTransactions WaterTransaction[]
+  weatherData       WeatherData[]
+  farmer            Users              @relation(fields: [farmerId], references: [userId], onDelete: Cascade, map: "farm_farmer_id_fkey")
+
+  @@index([farmerId], map: "idx_farm_farmer")
+  @@check(expression: sql`(area > (0)::numeric)`, map: "farm_area_check")
+  @@check(expression: sql`((latitude >= ('-90'::integer)::numeric) AND (latitude <= (90)::numeric))`, map: "farm_latitude_check")
+  @@check(expression: sql`((longitude >= ('-180'::integer)::numeric) AND (longitude <= (180)::numeric))`, map: "farm_longitude_check")
+  @@map("farm")
+}
+
+model Field {
+  fieldId                 Uuid                     @id(map: "field_pkey") @default(sql`gen_random_uuid()`) @map("field_id")
+  farmId                  Uuid                     @map("farm_id")
+  fieldName               VarChar(150)             @map("field_name")
+  soilType                VarChar(50)              @map("soil_type")
+  area                    Numeric(10, 4)
+  fieldSlope              Numeric(5, 2)?           @map("field_slope")
+  remainingBudgetLitres   Numeric(12, 2)?          @map("remaining_budget_litres")
+  createdAt               TimestamptzString        @default(now()) @map("created_at")
+  updatedAt               TimestamptzString        @default(now()) @map("updated_at")
+  fieldBudgetTransactions FieldBudgetTransaction[]
+  fieldConditions         FieldConditions[]
+  fieldCrops              FieldCrop[]
+  waterAllocations        WaterAllocation[]
+  farm                    Farm                     @relation(fields: [farmId], references: [farmId], onDelete: Cascade, map: "field_farm_id_fkey")
+
+  @@unique([farmId, fieldName], map: "field_farm_id_field_name_key")
+  @@index([farmId], map: "idx_field_farm")
+  @@check(expression: sql`(area > (0)::numeric)`, map: "field_area_check")
+  @@check(expression: sql`(field_slope >= (0)::numeric)`, map: "field_field_slope_check")
+  @@check(expression: sql`(remaining_budget_litres >= (0)::numeric)`, map: "field_remaining_budget_litres_check")
+  @@map("field")
+}
+
+model FieldCrop {
+  fieldCropId                 Uuid                         @id(map: "field_crop_pkey") @default(sql`gen_random_uuid()`) @map("field_crop_id")
+  fieldId                     Uuid                         @map("field_id")
+  cropId                      Uuid                         @map("crop_id")
+  plantingDate                DateString                   @map("planting_date")
+  isActive                    Boolean                      @default(true) @map("is_active")
+  createdAt                   TimestamptzString            @default(now()) @map("created_at")
+  updatedAt                   TimestamptzString            @default(now()) @map("updated_at")
+  cropEvolutions              CropEvolution[]
+  irrigationActionPredictions IrrigationActionPrediction[]
+  irrigationEvents            IrrigationEvent[]
+  crop                        Crop                         @relation(fields: [cropId], references: [cropId], onDelete: Restrict, map: "field_crop_crop_id_fkey")
+  field                       Field                        @relation(fields: [fieldId], references: [fieldId], onDelete: Cascade, map: "field_crop_field_id_fkey")
+
+  @@index([fieldId], map: "idx_field_crop_active", where: sql`is_active`)
+  @@index([cropId], map: "idx_field_crop_crop")
+  @@index([fieldId], map: "idx_field_crop_field")
+  @@map("field_crop")
+}
+
+model CropEvolution {
+  evolutionId       Uuid              @id(map: "crop_evolution_pkey") @default(sql`gen_random_uuid()`) @map("evolution_id")
+  fieldCropId       Uuid              @map("field_crop_id")
+  recordedAt        TimestamptzString @map("recorded_at")
+  growthStage       VarChar(50)       @map("growth_stage")
+  rootZoneDepth     Numeric(5, 3)?    @map("root_zone_depth")
+  leafAreaIndex     Numeric(5, 2)?    @map("leaf_area_index")
+  daysSincePlanting Int?              @map("days_since_planting")
+  fieldCrop         FieldCrop         @relation(fields: [fieldCropId], references: [fieldCropId], onDelete: Cascade, map: "crop_evolution_field_crop_id_fkey", index: "idx_crop_evolution_fc_time")
+
+  @@index([fieldCropId, recordedAt], map: "idx_crop_evolution_fc_time")
+  @@check(expression: sql`(days_since_planting >= 0)`, map: "crop_evolution_days_since_planting_check")
+  @@check(expression: sql`(leaf_area_index >= (0)::numeric)`, map: "crop_evolution_leaf_area_index_check")
+  @@check(expression: sql`(root_zone_depth >= (0)::numeric)`, map: "crop_evolution_root_zone_depth_check")
+  @@map("crop_evolution")
+}
+
+model WaterTransaction {
+  transactionId           Uuid                     @id(map: "water_transaction_pkey") @default(sql`gen_random_uuid()`) @map("transaction_id")
+  farmId                  Uuid                     @map("farm_id")
+  ledgerSeq               Int                      @map("ledger_seq")
+  transactionType         VarChar(20)              @map("transaction_type")
+  quantityLitres          Numeric(12, 2)           @map("quantity_litres")
+  transactionDate         TimestamptzString        @default(now()) @map("transaction_date")
+  currentQuantityLitres   Numeric(12, 2)           @map("current_quantity_litres")
+  notes                   String?
+  fieldBudgetTransactions FieldBudgetTransaction[]
+  irrigationEvent         IrrigationEvent?
+  farm                    Farm                     @relation(fields: [farmId], references: [farmId], onDelete: Cascade, map: "water_transaction_farm_id_fkey", index: "uq_water_txn_farm_seq")
+
+  @@unique([farmId, ledgerSeq], map: "uq_water_txn_farm_seq")
+  @@index([farmId, transactionDate], map: "idx_water_txn_farm_date")
+  @@index([farmId], map: "uq_water_txn_one_initial", where: sql`((transaction_type)::text = 'INITIAL_ENTRY'::text)`, unique: true)
+  @@check(expression: sql`((((transaction_type)::text = 'INITIAL_ENTRY'::text) AND (quantity_litres >= (0)::numeric)) OR (((transaction_type)::text = ANY ((ARRAY['REFILL'::character varying, 'IRRIGATION'::character varying])::text[])) AND (quantity_litres > (0)::numeric)))`, map: "chk_water_txn_quantity")
+  @@check(expression: sql`(current_quantity_litres >= (0)::numeric)`, map: "water_transaction_current_quantity_litres_check")
+  @@check(expression: sql`((transaction_type)::text = ANY ((ARRAY['INITIAL_ENTRY'::character varying, 'REFILL'::character varying, 'IRRIGATION'::character varying])::text[]))`, map: "water_transaction_transaction_type_check")
+  @@map("water_transaction")
+}
+
+model FieldBudgetTransaction {
+  budgetTxnId             Uuid              @id(map: "field_budget_transaction_pkey") @default(sql`gen_random_uuid()`) @map("budget_txn_id")
+  fieldId                 Uuid              @map("field_id")
+  waterTransactionId      Uuid?             @map("water_transaction_id")
+  reason                  VarChar(20)
+  changeLitres            Numeric(12, 2)    @map("change_litres")
+  budgetAfterLitres       Numeric(12, 2)?   @map("budget_after_litres")
+  unallocatedBeforeLitres Numeric(12, 2)?   @map("unallocated_before_litres")
+  allocationPercentage    Numeric(5, 2)?    @map("allocation_percentage")
+  createdAt               TimestamptzString @default(now()) @map("created_at")
+  field                   Field             @relation(fields: [fieldId], references: [fieldId], onDelete: Cascade, map: "field_budget_transaction_field_id_fkey", index: "idx_budget_txn_field_time")
+  waterTransaction        WaterTransaction? @relation(fields: [waterTransactionId], references: [transactionId], onDelete: Cascade, map: "field_budget_transaction_water_transaction_id_fkey")
+
+  @@index([fieldId, createdAt], map: "idx_budget_txn_field_time")
+  @@index([waterTransactionId], map: "idx_budget_txn_water_txn")
+  @@check(expression: sql`((allocation_percentage >= (0)::numeric) AND (allocation_percentage <= (100)::numeric))`, map: "field_budget_transaction_allocation_percentage_check")
+  @@check(expression: sql`(budget_after_litres >= (0)::numeric)`, map: "field_budget_transaction_budget_after_litres_check")
+  @@check(expression: sql`((((reason)::text = 'ALLOCATE'::text) AND (change_litres >= (0)::numeric)) OR (((reason)::text = ANY ((ARRAY['IRRIGATE'::character varying, 'RELEASE'::character varying])::text[])) AND (change_litres <= (0)::numeric)))`, map: "field_budget_transaction_check")
+  @@check(expression: sql`((reason)::text = ANY ((ARRAY['ALLOCATE'::character varying, 'IRRIGATE'::character varying, 'RELEASE'::character varying])::text[]))`, map: "field_budget_transaction_reason_check")
+  @@check(expression: sql`(unallocated_before_litres >= (0)::numeric)`, map: "field_budget_transaction_unallocated_before_litres_check")
+  @@map("field_budget_transaction")
+}
+
+model FieldConditions {
+  fieldConditionsId        Uuid              @id(map: "field_conditions_pkey") @default(sql`gen_random_uuid()`) @map("field_conditions_id")
+  fieldId                  Uuid              @map("field_id")
+  dateTime                 TimestamptzString @map("date_time")
+  soilMoisture             Numeric(5, 2)?    @map("soil_moisture")
+  soilTemperature          Numeric(5, 2)?    @map("soil_temperature")
+  soilPh                   Numeric(4, 2)?    @map("soil_ph")
+  soilEc                   Numeric(7, 3)?    @map("soil_ec")
+  waterAvailability        Numeric(12, 2)?   @map("water_availability")
+  previousIrrigationAmount Numeric(12, 2)?   @map("previous_irrigation_amount")
+  daysSinceLastIrrigation  Int?              @map("days_since_last_irrigation")
+  waterStressIndex         Numeric(5, 3)?    @map("water_stress_index")
+  createdAt                TimestamptzString @default(now()) @map("created_at")
+  field                    Field             @relation(fields: [fieldId], references: [fieldId], onDelete: Cascade, map: "field_conditions_field_id_fkey", index: "idx_field_conditions_field_time")
+
+  @@index([fieldId, dateTime], map: "idx_field_conditions_field_time")
+  @@check(expression: sql`(days_since_last_irrigation >= 0)`, map: "field_conditions_days_since_last_irrigation_check")
+  @@check(expression: sql`(previous_irrigation_amount >= (0)::numeric)`, map: "field_conditions_previous_irrigation_amount_check")
+  @@check(expression: sql`(soil_ec >= (0)::numeric)`, map: "field_conditions_soil_ec_check")
+  @@check(expression: sql`((soil_moisture >= (0)::numeric) AND (soil_moisture <= (100)::numeric))`, map: "field_conditions_soil_moisture_check")
+  @@check(expression: sql`((soil_ph >= (0)::numeric) AND (soil_ph <= (14)::numeric))`, map: "field_conditions_soil_ph_check")
+  @@check(expression: sql`(water_availability >= (0)::numeric)`, map: "field_conditions_water_availability_check")
+  @@map("field_conditions")
+}
+
+model IrrigationActionPrediction {
+  predictionId              Uuid              @id(map: "irrigation_action_prediction_pkey") @default(sql`gen_random_uuid()`) @map("prediction_id")
+  fieldCropId               Uuid              @map("field_crop_id")
+  predictedAt               TimestamptzString @default(now()) @map("predicted_at")
+  predictedIrrigationAction VarChar(50)       @map("predicted_irrigation_action")
+  cropType                  VarChar(50)       @map("crop_type")
+  growthStage               VarChar(50)       @map("growth_stage")
+  soilType                  VarChar(50)       @map("soil_type")
+  modelVersion              VarChar(50)?      @map("model_version")
+  predictionConfidence      Numeric(5, 4)?    @map("prediction_confidence")
+  dayOfYear                 SmallInt?         @map("day_of_year")
+  timeOfDay                 SmallInt?         @map("time_of_day")
+  soilMoisture              Numeric(5, 2)?    @map("soil_moisture")
+  soilTemperature           Numeric(5, 2)?    @map("soil_temperature")
+  soilPh                    Numeric(4, 2)?    @map("soil_ph")
+  soilEc                    Numeric(7, 3)?    @map("soil_ec")
+  ambientTemperature        Numeric(5, 2)?    @map("ambient_temperature")
+  relativeHumidity          Numeric(5, 2)?    @map("relative_humidity")
+  windSpeed                 Numeric(5, 2)?    @map("wind_speed")
+  solarRadiation            Numeric(7, 3)?    @map("solar_radiation")
+  rainfall24h               Numeric(7, 2)?    @map("rainfall_24h")
+  rainfallForecast24h       Numeric(7, 2)?    @map("rainfall_forecast_24h")
+  rootZoneDepth             Numeric(5, 3)?    @map("root_zone_depth")
+  leafAreaIndex             Numeric(5, 2)?    @map("leaf_area_index")
+  cropCoefficient           Numeric(4, 3)?    @map("crop_coefficient")
+  fieldSlope                Numeric(5, 2)?    @map("field_slope")
+  waterAvailability         Numeric(12, 2)?   @map("water_availability")
+  previousIrrigationAmount  Numeric(12, 2)?   @map("previous_irrigation_amount")
+  daysSinceLastIrrigation   Int?              @map("days_since_last_irrigation")
+  historicalSoilMoisture    Numeric(5, 2)?    @map("historical_soil_moisture")
+  evaporationDemand         Numeric(6, 3)?    @map("evaporation_demand")
+  waterStressIndex          Numeric(5, 3)?    @map("water_stress_index")
+  fieldCrop                 FieldCrop         @relation(fields: [fieldCropId], references: [fieldCropId], onDelete: Cascade, map: "irrigation_action_prediction_field_crop_id_fkey", index: "idx_prediction_fc_time")
+
+  @@index([fieldCropId, predictedAt], map: "idx_prediction_fc_time")
+  @@index([modelVersion], map: "idx_prediction_model")
+  @@check(expression: sql`(crop_coefficient > (0)::numeric)`, map: "irrigation_action_prediction_crop_coefficient_check")
+  @@check(expression: sql`((day_of_year >= 1) AND (day_of_year <= 366))`, map: "irrigation_action_prediction_day_of_year_check")
+  @@check(expression: sql`(days_since_last_irrigation >= 0)`, map: "irrigation_action_prediction_days_since_last_irrigation_check")
+  @@check(expression: sql`(evaporation_demand >= (0)::numeric)`, map: "irrigation_action_prediction_evaporation_demand_check")
+  @@check(expression: sql`(field_slope >= (0)::numeric)`, map: "irrigation_action_prediction_field_slope_check")
+  @@check(expression: sql`((historical_soil_moisture >= (0)::numeric) AND (historical_soil_moisture <= (100)::numeric))`, map: "irrigation_action_prediction_historical_soil_moisture_check")
+  @@check(expression: sql`(leaf_area_index >= (0)::numeric)`, map: "irrigation_action_prediction_leaf_area_index_check")
+  @@check(expression: sql`((prediction_confidence >= (0)::numeric) AND (prediction_confidence <= (1)::numeric))`, map: "irrigation_action_prediction_prediction_confidence_check")
+  @@check(expression: sql`(previous_irrigation_amount >= (0)::numeric)`, map: "irrigation_action_prediction_previous_irrigation_amount_check")
+  @@check(expression: sql`(rainfall_24h >= (0)::numeric)`, map: "irrigation_action_prediction_rainfall_24h_check")
+  @@check(expression: sql`(rainfall_forecast_24h >= (0)::numeric)`, map: "irrigation_action_prediction_rainfall_forecast_24h_check")
+  @@check(expression: sql`((relative_humidity >= (0)::numeric) AND (relative_humidity <= (100)::numeric))`, map: "irrigation_action_prediction_relative_humidity_check")
+  @@check(expression: sql`(root_zone_depth >= (0)::numeric)`, map: "irrigation_action_prediction_root_zone_depth_check")
+  @@check(expression: sql`(soil_ec >= (0)::numeric)`, map: "irrigation_action_prediction_soil_ec_check")
+  @@check(expression: sql`((soil_moisture >= (0)::numeric) AND (soil_moisture <= (100)::numeric))`, map: "irrigation_action_prediction_soil_moisture_check")
+  @@check(expression: sql`((soil_ph >= (0)::numeric) AND (soil_ph <= (14)::numeric))`, map: "irrigation_action_prediction_soil_ph_check")
+  @@check(expression: sql`(solar_radiation >= (0)::numeric)`, map: "irrigation_action_prediction_solar_radiation_check")
+  @@check(expression: sql`((time_of_day >= 0) AND (time_of_day <= 23))`, map: "irrigation_action_prediction_time_of_day_check")
+  @@check(expression: sql`(water_availability >= (0)::numeric)`, map: "irrigation_action_prediction_water_availability_check")
+  @@check(expression: sql`(wind_speed >= (0)::numeric)`, map: "irrigation_action_prediction_wind_speed_check")
+  @@map("irrigation_action_prediction")
+}
+
+model IrrigationEvent {
+  eventId            Uuid              @id(map: "irrigation_event_pkey") @default(sql`gen_random_uuid()`) @map("event_id")
+  fieldCropId        Uuid              @map("field_crop_id")
+  transactionId      Uuid              @unique(map: "irrigation_event_transaction_id_key") @map("transaction_id")
+  quantityUsedLitres Numeric(12, 2)    @map("quantity_used_litres")
+  irrigationDate     TimestamptzString @map("irrigation_date")
+  notes              String?
+  createdAt          TimestamptzString @default(now()) @map("created_at")
+  updatedAt          TimestamptzString @default(now()) @map("updated_at")
+  fieldCrop          FieldCrop         @relation(fields: [fieldCropId], references: [fieldCropId], onDelete: Cascade, map: "irrigation_event_field_crop_id_fkey", index: "idx_irrigation_event_fc_date")
+  transaction        WaterTransaction  @relation(fields: [transactionId], references: [transactionId], onDelete: Cascade, map: "irrigation_event_transaction_id_fkey")
+
+  @@index([fieldCropId, irrigationDate], map: "idx_irrigation_event_fc_date")
+  @@check(expression: sql`(quantity_used_litres > (0)::numeric)`, map: "irrigation_event_quantity_used_litres_check")
+  @@map("irrigation_event")
+}
+
+model WaterAllocation {
+  allocationId         Uuid               @id(map: "water_allocation_pkey") @default(sql`gen_random_uuid()`) @map("allocation_id")
+  fieldId              Uuid               @map("field_id")
+  allocationPercentage Numeric(5, 2)      @map("allocation_percentage")
+  effectiveFrom        TimestamptzString  @map("effective_from")
+  effectiveUntil       TimestamptzString? @map("effective_until")
+  isActive             Boolean            @default(true) @map("is_active")
+  createdAt            TimestamptzString  @default(now()) @map("created_at")
+  updatedAt            TimestamptzString  @default(now()) @map("updated_at")
+  field                Field              @relation(fields: [fieldId], references: [fieldId], onDelete: Cascade, map: "water_allocation_field_id_fkey", index: false)
+
+  @@index([fieldId], map: "uq_water_allocation_active_field", where: sql`is_active`, unique: true)
+  @@check(expression: sql`((allocation_percentage >= (0)::numeric) AND (allocation_percentage <= (100)::numeric))`, map: "water_allocation_allocation_percentage_check")
+  @@check(expression: sql`((effective_until IS NULL) OR (effective_until > effective_from))`, map: "water_allocation_check")
+  @@check(expression: sql`((NOT is_active) OR (effective_until IS NULL))`, map: "water_allocation_check1")
+  @@map("water_allocation")
+}
+
+model WeatherData {
+  weatherId              Uuid              @id(map: "weather_data_pkey") @default(sql`gen_random_uuid()`) @map("weather_id")
+  farmId                 Uuid              @map("farm_id")
+  dateTime               TimestamptzString @map("date_time")
+  recordType             VarChar(20)       @map("record_type")
+  ambientTemperature     Numeric(5, 2)?    @map("ambient_temperature")
+  relativeHumidity       Numeric(5, 2)?    @map("relative_humidity")
+  rainfall24h            Numeric(7, 2)?    @map("rainfall_24h")
+  rainfallForecast24h    Numeric(7, 2)?    @map("rainfall_forecast_24h")
+  solarRadiation         Numeric(7, 3)?    @map("solar_radiation")
+  evapotranspirationRate Numeric(6, 3)?    @map("evapotranspiration_rate")
+  windSpeed              Numeric(5, 2)?    @map("wind_speed")
+  createdAt              TimestamptzString @default(now()) @map("created_at")
+  farm                   Farm              @relation(fields: [farmId], references: [farmId], onDelete: Cascade, map: "weather_data_farm_id_fkey", index: "weather_data_farm_id_date_time_record_type_key")
+
+  @@unique([farmId, dateTime, recordType], map: "weather_data_farm_id_date_time_record_type_key")
+  @@index([farmId, dateTime], map: "idx_weather_farm_time")
+  @@check(expression: sql`(evapotranspiration_rate >= (0)::numeric)`, map: "weather_data_evapotranspiration_rate_check")
+  @@check(expression: sql`(rainfall_24h >= (0)::numeric)`, map: "weather_data_rainfall_24h_check")
+  @@check(expression: sql`(rainfall_forecast_24h >= (0)::numeric)`, map: "weather_data_rainfall_forecast_24h_check")
+  @@check(expression: sql`((record_type)::text = ANY ((ARRAY['historical'::character varying, 'observed'::character varying, 'forecast'::character varying])::text[]))`, map: "weather_data_record_type_check")
+  @@check(expression: sql`((relative_humidity >= (0)::numeric) AND (relative_humidity <= (100)::numeric))`, map: "weather_data_relative_humidity_check")
+  @@check(expression: sql`(solar_radiation >= (0)::numeric)`, map: "weather_data_solar_radiation_check")
+  @@check(expression: sql`(wind_speed >= (0)::numeric)`, map: "weather_data_wind_speed_check")
+  @@map("weather_data")
 }
