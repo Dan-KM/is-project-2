@@ -1,7 +1,8 @@
-import { LogOut, UserRound } from "lucide-react";
+import { LogOut } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { logoutAction } from "@/app/actions/auth";
+import { BottomNav } from "@/components/bottom-nav";
 import { BrandMark } from "@/components/brand-mark";
 import { Icon } from "@/components/icon";
 import { cx, focusRing } from "@/components/ui";
@@ -33,30 +34,34 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
           </Suspense>
         </div>
       </header>
-      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-xl flex-1 px-4 py-5 focus:outline-none">
+      {/* Bottom padding keeps the last content clear of the fixed tab bar */}
+      <main id="main" tabIndex={-1} className="mx-auto w-full max-w-xl flex-1 px-4 pt-5 pb-28 focus:outline-none">
         {children}
       </main>
+      <Suspense fallback={null}>
+        <SignedInNav />
+      </Suspense>
     </div>
   );
 }
 
 const navItem = cx("flex min-h-11 cursor-pointer items-center gap-1.5 rounded-lg px-3 hover:bg-accent", focusRing);
 
+/** Logout lives in the header, apart from the everyday tabs (destructive-nav-separation). */
 async function AccountLinks() {
   const actor = await getActor();
   if (!actor) return null;
   return (
-    <nav aria-label={t("nav.account")} className="flex items-center gap-1 text-sm">
-      <Link href="/profile" className={navItem}>
-        <Icon icon={UserRound} size="sm" />
-        {t("nav.profile")}
-      </Link>
-      <form action={logoutAction}>
-        <button type="submit" className={cx(navItem, "text-muted")}>
-          <Icon icon={LogOut} size="sm" />
-          {t("nav.logout")}
-        </button>
-      </form>
-    </nav>
+    <form action={logoutAction}>
+      <button type="submit" className={cx(navItem, "text-sm text-muted")}>
+        <Icon icon={LogOut} size="sm" />
+        {t("nav.logout")}
+      </button>
+    </form>
   );
+}
+
+async function SignedInNav() {
+  const actor = await getActor();
+  return actor ? <BottomNav /> : null;
 }
