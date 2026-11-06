@@ -9,7 +9,8 @@
     "lint": "eslint",
     "contract:emit": "prisma contract emit",
     "test:db": "tsx --conditions=react-server script/tests/water-operations.ts",
-    "test:weather": "tsx --conditions=react-server script/tests/weather.ts"
+    "test:weather": "tsx --conditions=react-server script/tests/weather.ts",
+    "test:prediction-api": "tsx --conditions=react-server script/tests/prediction-api.ts"
   },
   "dependencies": {
     "@prisma/orm-postgres": "^8.0.0-rc.18",

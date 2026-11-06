@@ -1,4 +1,4 @@
-import { ChevronLeft, Droplets, Plus } from "lucide-react";
+import { ChevronLeft, Droplets, Plus, Sparkles } from "lucide-react";
 import { Icon } from "@/components/icon";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -6,6 +6,9 @@ import { deleteFieldAction } from "@/app/actions/farms";
 import { deleteGrowthAction } from "@/app/actions/plantings";
 import { deleteReadingAction } from "@/app/actions/readings";
 import { ConfirmButton } from "@/components/form/confirm-button";
+import { ActionBadge } from "@/components/prediction/action-display";
+import { estimatedCount } from "@/lib/features/stored";
+import { listPredictions } from "@/lib/services/predictions";
 import { Badge, ButtonLink, Card, DetailList, EmptyState, PageHeader, PageLoading, SectionTitle } from "@/components/ui";
 import { formatDate, formatDateTime, formatLitres, formatNumber } from "@/lib/format";
 import { t } from "@/lib/i18n";
@@ -27,10 +30,11 @@ async function FieldDetail({ params }: { params: PageProps<"/fields/[fieldId]">[
   const { fieldId } = await params;
   const actor = await requirePageActor();
   const field = await orNotFound(getField(actor, fieldId));
-  const [planting, budgets, readings] = await Promise.all([
+  const [planting, budgets, readings, predictions] = await Promise.all([
     getActivePlanting(actor, fieldId),
     listFieldBudgets(actor, field.farmId),
     listReadings(actor, fieldId, 10),
+    listPredictions(actor, fieldId, 5),
   ]);
   const growth = planting ? await listGrowthRecords(actor, planting.fieldCropId) : [];
   const budget = budgets.find((b) => b.fieldId === fieldId);
@@ -55,7 +59,11 @@ async function FieldDetail({ params }: { params: PageProps<"/fields/[fieldId]">[
             },
           ]}
         />
-        <ButtonLink href={`/fields/${fieldId}/water`} className="mt-4 w-full" icon={<Icon icon={Droplets} />}>
+        {/* The main thing a farmer comes here for: one primary action per screen */}
+        <ButtonLink href={`/fields/${fieldId}/predict`} className="mt-4 w-full" icon={<Icon icon={Sparkles} />}>
+          {t("predict.cta")}
+        </ButtonLink>
+        <ButtonLink href={`/fields/${fieldId}/water`} variant="secondary" className="mt-2 w-full" icon={<Icon icon={Droplets} />}>
           {t("water.manageField")}
         </ButtonLink>
       </Card>
@@ -77,7 +85,7 @@ async function FieldDetail({ params }: { params: PageProps<"/fields/[fieldId]">[
               <strong>{growth[0] ? t(`stage.${growth[0].growthStage}`) : "—"}</strong>
             </p>
             <div className="mt-3 grid gap-2">
-              <ButtonLink href={`/plantings/${planting.fieldCropId}/growth/new`}>{t("growth.add")}</ButtonLink>
+              <ButtonLink href={`/plantings/${planting.fieldCropId}/growth/new`} variant="secondary">{t("growth.add")}</ButtonLink>
             </div>
           </>
         ) : (
@@ -124,6 +132,37 @@ async function FieldDetail({ params }: { params: PageProps<"/fields/[fieldId]">[
             </ul>
           )}
         </>
+      )}
+
+      {/* ---- Recommendations (stored predictions) ---- */}
+      <SectionTitle>{t("predict.history.title")}</SectionTitle>
+      {predictions.length === 0 ? (
+        <div className="mb-5">
+          <EmptyState>{t("predict.history.empty")}</EmptyState>
+        </div>
+      ) : (
+        <ul className="mb-5 space-y-2">
+          {predictions.map((p) => {
+            const estimated = estimatedCount(p);
+            return (
+              <li key={p.predictionId}>
+                <Link href={`/predictions/${p.predictionId}`} className="block">
+                  <Card className="transition-colors hover:border-primary">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <ActionBadge action={p.predictedIrrigationAction} />
+                      <span className="text-sm text-muted">{formatDateTime(p.predictedAt)}</span>
+                    </div>
+                    <p className="mt-1 text-sm text-muted">
+                      {t("feature.Soil_Moisture")}: {p.soilMoisture === null ? "—" : `${formatNumber(p.soilMoisture)} %`}
+                      {estimated > 0 && ` · ${t("predict.history.estimated", { count: estimated })}`}
+                      {p.modelVersion === "mock-v1" && ` · ${t("prediction.mockBadge")}`}
+                    </p>
+                  </Card>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
       )}
 
       {/* ---- Soil readings ---- */}

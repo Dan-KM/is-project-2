@@ -1,6 +1,7 @@
 "use server";
 
 import { runAction } from "@/lib/actions/run";
+import { getPredictionMode } from "@/lib/prediction";
 import * as predictions from "@/lib/services/predictions";
 import { predictionIdSchema, predictionInputSchema, type PredictionInput } from "@/lib/validation/schemas";
 
@@ -15,7 +16,12 @@ export async function previewPredictionAction(input: PredictionInput) {
     async (actor, data) => {
       const assembled = await predictions.previewPrediction(actor, data);
       // Send only what the confirmation screen renders
-      return { entries: assembled.entries, missing: assembled.missing, context: assembled.context };
+      return {
+        entries: assembled.entries,
+        missing: assembled.missing,
+        context: assembled.context,
+        mode: getPredictionMode(), // so the screen can show "Mock prediction" up front
+      };
     },
     { revalidate: false },
   );

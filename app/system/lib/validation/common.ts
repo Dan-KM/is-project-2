@@ -30,7 +30,10 @@ export function optionalText(max: number) {
 type NumberOptions = { min?: number; max?: number; int?: boolean; positive?: boolean };
 
 function numberSchema({ min, max, int, positive }: NumberOptions) {
-  let schema = z.number({ error: "validation.number" }).refine(Number.isFinite, { error: "validation.number" });
+  // Nothing typed → "required"; something that isn't a number → "enter a number"
+  let schema = z
+    .number({ error: (issue) => (issue.input === undefined ? "validation.required" : "validation.number") })
+    .refine(Number.isFinite, { error: "validation.number" });
   if (int) schema = schema.refine(Number.isInteger, { error: "validation.integer" });
   if (positive) schema = schema.refine((n) => n > 0, { error: "validation.positive" });
   if (min !== undefined && max !== undefined) {
