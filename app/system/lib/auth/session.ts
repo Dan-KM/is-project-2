@@ -1,6 +1,7 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
+import { connection } from "next/server";
 
 // A small signed-cookie session: the cookie holds the user id and an expiry,
 // signed with HMAC-SHA256 so it can't be forged. The role is NOT stored in the
@@ -58,6 +59,9 @@ export async function createSession(userId: string): Promise<void> {
 
 export async function getSessionUserId(): Promise<string | null> {
   const token = (await cookies()).get(COOKIE_NAME)?.value;
+  // Checking the expiry reads the clock; tell Next.js this render is per-request
+  // (Cache Components refuses Date.now() in anything it might prerender).
+  await connection();
   return token ? (decode(token)?.userId ?? null) : null;
 }
 

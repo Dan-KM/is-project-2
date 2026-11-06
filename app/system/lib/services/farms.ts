@@ -13,7 +13,8 @@ import { dbText, fromDbNumber, toDbNumber } from "./shared";
 
 export async function listFarms(actor: Actor) {
   authorize(actor, "farm.read");
-  const query = db.orm.public.Farm.orderBy((f) => f.farmName.asc());
+  // Field count comes back as a number on each farm (an include reducer)
+  const query = db.orm.public.Farm.include("fields", (f) => f.count()).orderBy((f) => f.farmName.asc());
   // Admin sees every farm; a farmer only their own
   return actor.role === "admin" ? query.all() : query.where({ farmerId: actor.userId }).all();
 }

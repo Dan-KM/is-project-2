@@ -2,7 +2,7 @@ import "server-only";
 import { db } from "@/lib/db";
 import { AppError, toAppError } from "@/lib/errors";
 import { authorize, type Actor } from "@/lib/auth/actor";
-import { assertFieldAccess, assertPlantingAccess } from "@/lib/auth/access";
+import { assertFieldAccess, assertUuid, assertPlantingAccess } from "@/lib/auth/access";
 import { buildFeaturePayload, type AssembledFeatures, type FarmerInput } from "@/lib/features/payload";
 import { FEATURES, FEATURE_COUNT, FEATURE_NAMES, type IrrigationAction } from "@/lib/features/catalog";
 import { getModelVersion, getPredictionMode, predict, type PredictionMode } from "@/lib/prediction";
@@ -126,6 +126,7 @@ export async function listPredictions(actor: Actor, fieldId: string, limit = 20)
 
 export async function getPrediction(actor: Actor, predictionId: string) {
   authorize(actor, "farm.read");
+  assertUuid(predictionId); // ids can come straight from a URL
   const row = await db.orm.public.IrrigationActionPrediction.where({ predictionId }).first();
   if (!row) throw new AppError("errors.notFound");
   await assertPlantingAccess(actor, row.fieldCropId);

@@ -17,6 +17,21 @@ export async function listFields(actor: Actor, farmId: string) {
   return db.orm.public.Field.where({ farmId }).orderBy((f) => f.fieldName.asc()).all();
 }
 
+/** Fields of a farm with their active crop (if any), for the farm page. */
+export async function listFieldsWithCrops(actor: Actor, farmId: string) {
+  const fieldRows = await listFields(actor, farmId);
+  if (fieldRows.length === 0) return [];
+  const active = await db.orm.public.FieldCrop
+    .where((p) => p.fieldId.in(fieldRows.map((f) => f.fieldId)))
+    .where({ isActive: true })
+    .include("crop")
+    .all();
+  return fieldRows.map((field) => ({
+    ...field,
+    activePlanting: active.find((p) => p.fieldId === field.fieldId) ?? null,
+  }));
+}
+
 export async function getField(actor: Actor, fieldId: string) {
   authorize(actor, "farm.read");
   return assertFieldAccess(actor, fieldId);

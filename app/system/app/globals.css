@@ -1,26 +1,82 @@
 @import "tailwindcss";
 
+/*
+ * Design tokens. Farmers use this outdoors on phones, so: high contrast,
+ * large tap targets, and a calm green/earth palette. Every colour is a token
+ * so dark mode only redefines the tokens.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --background: #f6f5f0;
+  --surface: #ffffff;
+  --foreground: #1c241d;
+  --muted: #5b6659;
+  --border: #d9dcd2;
+  --primary: #2f6b3a;
+  --primary-hover: #25562e;
+  --primary-foreground: #ffffff;
+  --accent: #e8f1e4;
+  --danger: #b42318;
+  --danger-soft: #fdecea;
+  --warning: #9a6200;
+  --warning-soft: #fff4dc;
+  --info: #1f5f8b;
+  --info-soft: #e5f1fa;
+  --success-soft: #e6f4e8;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #121612;
+    --surface: #1b211b;
+    --foreground: #e9eee6;
+    --muted: #a3ad9f;
+    --border: #2f382f;
+    --primary: #5fa86b;
+    --primary-hover: #74b97f;
+    --primary-foreground: #0d150e;
+    --accent: #223024;
+    --danger: #f2877d;
+    --danger-soft: #3a1d1a;
+    --warning: #f0b850;
+    --warning-soft: #33280f;
+    --info: #7cb8e3;
+    --info-soft: #142836;
+    --success-soft: #1c2f1f;
   }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-accent: var(--accent);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-success-soft: var(--success-soft);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  /* No grey flash when tapping on mobile */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 16px inputs stop iOS from zooming the page when a field is focused */
+input,
+select,
+textarea {
+  font-size: 16px;
 }

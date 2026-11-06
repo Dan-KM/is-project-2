@@ -3,7 +3,7 @@ import type { z } from "zod";
 import { db } from "@/lib/db";
 import { AppError, toAppError } from "@/lib/errors";
 import { authorize, type Actor } from "@/lib/auth/actor";
-import { assertFieldAccess } from "@/lib/auth/access";
+import { assertFieldAccess, assertUuid } from "@/lib/auth/access";
 import { calendarDaysBetween, parseDbTimestamp } from "@/lib/time";
 import type { createReadingSchema, updateReadingSchema } from "@/lib/validation/schemas";
 import { fromDbNumber, toDbNumber } from "./shared";
@@ -141,10 +141,19 @@ export async function createReading(actor: Actor, input: z.infer<typeof createRe
 }
 
 async function assertReadingAccess(actor: Actor, fieldConditionsId: string) {
+  assertUuid(fieldConditionsId); // ids can come straight from a URL
   const reading = await db.orm.public.FieldConditions.where({ fieldConditionsId }).first();
   if (!reading) throw new AppError("errors.notFound");
   await assertFieldAccess(actor, reading.fieldId);
   return reading;
+}
+
+/** One reading with its field (for the edit page). */
+export async function getReading(actor: Actor, fieldConditionsId: string) {
+  authorize(actor, "farm.read");
+  const reading = await assertReadingAccess(actor, fieldConditionsId);
+  const field = await assertFieldAccess(actor, reading.fieldId);
+  return { reading, field };
 }
 
 export async function updateReading(actor: Actor, input: z.infer<typeof updateReadingSchema>) {

@@ -3,7 +3,7 @@ import type { z } from "zod";
 import { db } from "@/lib/db";
 import { AppError, toAppError } from "@/lib/errors";
 import { authorize, type Actor } from "@/lib/auth/actor";
-import { assertFieldAccess, assertPlantingAccess } from "@/lib/auth/access";
+import { assertFieldAccess, assertUuid, assertPlantingAccess } from "@/lib/auth/access";
 import { daysSinceDate } from "@/lib/time";
 import type {
   createGrowthSchema, plantCropSchema, updateGrowthSchema, updatePlantingSchema,
@@ -129,10 +129,24 @@ export async function createGrowthRecord(actor: Actor, input: z.infer<typeof cre
 }
 
 async function assertGrowthAccess(actor: Actor, evolutionId: string) {
+  assertUuid(evolutionId); // ids can come straight from a URL
   const record = await db.orm.public.CropEvolution.where({ evolutionId }).first();
   if (!record) throw new AppError("errors.notFound");
   await assertPlantingAccess(actor, record.fieldCropId);
   return record;
+}
+
+/** One growth record with its planting (for the edit page). */
+export async function getGrowthRecord(actor: Actor, evolutionId: string) {
+  authorize(actor, "farm.read");
+  const record = await assertGrowthAccess(actor, evolutionId);
+  const { planting, field } = await assertPlantingAccess(actor, record.fieldCropId);
+  return { record, planting, field };
+}
+
+export async function getPlanting(actor: Actor, fieldCropId: string) {
+  authorize(actor, "farm.read");
+  return assertPlantingAccess(actor, fieldCropId);
 }
 
 export async function updateGrowthRecord(actor: Actor, input: z.infer<typeof updateGrowthSchema>) {

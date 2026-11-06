@@ -54,6 +54,21 @@ export function calendarDaysBetween(earlier: Date, later: Date = new Date()): nu
   return Math.max(0, localDayNumber(later) - localDayNumber(earlier));
 }
 
+// Kenya has no daylight saving, so Nairobi is always UTC+3. Form date-time
+// inputs are read as Nairobi time on every device, whatever the phone's zone.
+const NAIROBI_OFFSET = "+03:00";
+
+/** "2026-11-06T09:30" from a datetime-local input (Nairobi) → ISO UTC string. */
+export function nairobiLocalToIso(local: string): string {
+  return new Date(`${local.length === 16 ? `${local}:00` : local}${NAIROBI_OFFSET}`).toISOString();
+}
+
+/** A moment → "YYYY-MM-DDTHH:mm" in Nairobi, for a datetime-local input's value. */
+export function toNairobiLocalInput(date: Date): string {
+  const shifted = new Date(date.getTime() + 3 * 3_600_000);
+  return shifted.toISOString().slice(0, 16);
+}
+
 /** Days since planting for a DATE column value ("YYYY-MM-DD"). */
 export function daysSinceDate(dateOnly: string, now: Date = new Date()): number {
   const [y, m, d] = dateOnly.split("-").map(Number);
