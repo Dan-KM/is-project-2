@@ -1,3 +1,6 @@
+import { ArrowRight, Droplets } from "lucide-react";
+import { Icon } from "@/components/icon";
+import { NoteSummary } from "@/components/note-summary";
 import { Suspense } from "react";
 import { setAllocationAction } from "@/app/actions/water";
 import { ConfirmButton } from "@/components/form/confirm-button";
@@ -52,7 +55,7 @@ async function FieldWater({ params }: { params: PageProps<"/fields/[fieldId]/wat
           <p className="text-sm text-muted">{t("water.field.budget")}</p>
           <BudgetStatusBadge status={status} />
         </div>
-        <p className="mb-3 text-3xl font-semibold tracking-tight">
+        <p className="mb-3 text-3xl font-semibold tracking-tight tabular-nums">
           {status === "NO_ALLOCATION" ? "—" : formatLitres(budget?.remainingBudgetLitres)}
         </p>
         <DetailList
@@ -64,8 +67,9 @@ async function FieldWater({ params }: { params: PageProps<"/fields/[fieldId]/wat
             { label: t("planting.title"), value: planting ? t(`crop.${planting.crop.cropName}`) : t("field.noCrop") },
           ]}
         />
-        <ButtonLink href={`/farms/${field.farmId}/water`} variant="ghost" className="mt-2 -ml-2">
-          💧 {t("water.farm.title")} →
+        <ButtonLink href={`/farms/${field.farmId}/water`} variant="ghost" className="mt-2 -ml-2" icon={<Icon icon={Droplets} size="sm" />}>
+          {t("water.farm.title")}
+          <Icon icon={ArrowRight} size="sm" />
         </ButtonLink>
       </Card>
 
@@ -114,12 +118,12 @@ async function FieldWater({ params }: { params: PageProps<"/fields/[fieldId]/wat
             <li key={e.eventId}>
               <Card>
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-lg font-semibold">{formatLitres(e.quantityUsedLitres)}</p>
+                  <p className="text-lg font-semibold tabular-nums">{formatLitres(e.quantityUsedLitres)}</p>
                   <span className="text-sm text-muted">{formatDateTime(e.irrigationDate)}</span>
                 </div>
                 <details className="mt-1">
-                  <summary className="min-h-11 cursor-pointer py-2 text-sm font-medium text-primary">
-                    {e.notes ? e.notes : `+ ${t("common.notes")}`}
+                  <summary className="min-h-11 cursor-pointer list-none py-2 [&::-webkit-details-marker]:hidden text-sm font-medium text-primary">
+                    <NoteSummary notes={e.notes} />
                   </summary>
                   <IrrigationNoteForm eventId={e.eventId} notes={e.notes ?? ""} />
                 </details>
@@ -165,7 +169,7 @@ async function FieldWater({ params }: { params: PageProps<"/fields/[fieldId]/wat
                     <Badge tone={reasonTone[h.reason as keyof typeof reasonTone] ?? "neutral"}>{t(`water.reason.${h.reason}`)}</Badge>
                     <p className="mt-1 text-sm text-muted">{formatDateTime(h.createdAt)}</p>
                   </div>
-                  <p className="font-semibold">{formatSignedLitres(h.changeLitres)}</p>
+                  <p className="font-semibold tabular-nums">{formatSignedLitres(h.changeLitres)}</p>
                 </div>
                 {h.reason === "ALLOCATE" && h.allocationPercentage !== null && (
                   <p className="mt-1 text-sm">

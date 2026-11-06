@@ -1,3 +1,6 @@
+import { Undo2 } from "lucide-react";
+import { Icon } from "@/components/icon";
+import { NoteSummary } from "@/components/note-summary";
 import Link from "next/link";
 import { Suspense } from "react";
 import { undoLatestWaterEntryAction } from "@/app/actions/water";
@@ -99,7 +102,8 @@ async function FarmWater({ params }: { params: PageProps<"/farms/[farmId]/water"
             <ConfirmButton
               action={undoLatestWaterEntryAction}
               payload={{ farmId }}
-              label={`↶ ${t("water.undo")}`}
+              label={t("water.undo")}
+              icon={<Icon icon={Undo2} size="sm" />}
               confirmLabel={t("water.undoConfirm")}
               pendingLabel={t("water.undoing")}
               warning={t("water.undo.warning")}
@@ -115,7 +119,7 @@ async function FarmWater({ params }: { params: PageProps<"/farms/[farmId]/water"
                       <Badge tone={typeTone[entry.transactionType]}>{t(`water.type.${entry.transactionType}`)}</Badge>
                       <p className="mt-1 text-sm text-muted">{formatDateTime(entry.transactionDate)}</p>
                     </div>
-                    <p className="text-lg font-semibold">
+                    <p className="text-lg font-semibold tabular-nums">
                       {formatSignedLitres(entry.transactionType === "IRRIGATION" ? -entry.quantityLitres : entry.quantityLitres)}
                     </p>
                   </div>
@@ -131,8 +135,8 @@ async function FarmWater({ params }: { params: PageProps<"/farms/[farmId]/water"
                     {t("water.ledger.balanceAfter", { litres: formatLitres(entry.balanceAfterLitres) })}
                   </p>
                   <details className="mt-2">
-                    <summary className="min-h-11 cursor-pointer py-2 text-sm font-medium text-primary">
-                      {entry.notes ? entry.notes : `+ ${t("common.notes")}`}
+                    <summary className="min-h-11 cursor-pointer list-none py-2 [&::-webkit-details-marker]:hidden text-sm font-medium text-primary">
+                      <NoteSummary notes={entry.notes} />
                     </summary>
                     <LedgerNoteForm transactionId={entry.transactionId} notes={entry.notes ?? ""} />
                   </details>

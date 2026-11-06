@@ -1,8 +1,10 @@
 "use client";
 
-import { useId, type InputHTMLAttributes, type ReactNode } from "react";
+import { Eye, EyeOff } from "lucide-react";
+import { useId, useState, type InputHTMLAttributes, type ReactNode } from "react";
+import { Icon } from "@/components/icon";
 import { t } from "@/lib/i18n";
-import { cx } from "@/components/ui";
+import { cx, focusRing } from "@/components/ui";
 import { useFormState } from "./action-form";
 
 // Labelled inputs that read their error from the surrounding ActionForm.
@@ -54,19 +56,39 @@ type TextFieldProps = BaseProps &
 export function TextField({ type = "text", ...props }: TextFieldProps) {
   const { pending } = useFormState();
   const { name, id, label, hint, optional, ...inputProps } = props;
+  // Password fields get a show/hide toggle, so farmers on small keyboards can
+  // check what they typed (ui-ux-pro-max: password-toggle)
+  const [revealed, setRevealed] = useState(false);
+  const isPassword = type === "password";
   return (
     <FieldShell name={name} id={id} label={label} hint={hint} optional={optional}>
       {({ id, describedBy, invalid }) => (
-        <input
-          id={id}
-          name={name}
-          type={type}
-          readOnly={pending}
-          aria-invalid={invalid}
-          aria-describedby={describedBy}
-          className={cx(inputClass, invalid ? "border-danger" : "border-border")}
-          {...inputProps}
-        />
+        <div className="relative">
+          <input
+            id={id}
+            name={name}
+            type={isPassword && revealed ? "text" : type}
+            readOnly={pending}
+            aria-invalid={invalid}
+            aria-describedby={describedBy}
+            className={cx(inputClass, invalid ? "border-danger" : "border-input-border", isPassword && "pr-12")}
+            {...inputProps}
+          />
+          {isPassword && (
+            <button
+              type="button"
+              onClick={() => setRevealed((r) => !r)}
+              aria-label={revealed ? t("common.hidePassword") : t("common.showPassword")}
+              aria-pressed={revealed}
+              className={cx(
+                "absolute inset-y-0 right-0 flex w-12 cursor-pointer items-center justify-center rounded-r-xl text-muted hover:text-foreground",
+                focusRing,
+              )}
+            >
+              <Icon icon={revealed ? EyeOff : Eye} />
+            </button>
+          )}
+        </div>
       )}
     </FieldShell>
   );
@@ -89,7 +111,7 @@ export function SelectField({
           defaultValue={defaultValue ?? ""}
           aria-invalid={invalid}
           aria-describedby={describedBy}
-          className={cx(inputClass, invalid ? "border-danger" : "border-border")}
+          className={cx(inputClass, invalid ? "border-danger" : "border-input-border")}
         >
           <option value="" disabled={!optional}>
             {t("select.placeholder")}
@@ -116,7 +138,7 @@ export function TextAreaField({ name, label, hint, optional, defaultValue }: Bas
           defaultValue={defaultValue}
           aria-invalid={invalid}
           aria-describedby={describedBy}
-          className={cx(inputClass, "py-2", invalid ? "border-danger" : "border-border")}
+          className={cx(inputClass, "py-2", invalid ? "border-danger" : "border-input-border")}
         />
       )}
     </FieldShell>

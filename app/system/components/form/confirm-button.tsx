@@ -1,9 +1,11 @@
 "use client";
 
+import { Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, type ReactNode } from "react";
 import type { ActionResult } from "@/lib/actions/run";
 import { t } from "@/lib/i18n";
+import { Icon } from "@/components/icon";
 import { buttonStyles, cx } from "@/components/ui";
 
 // A button for destructive or one-shot actions (delete, end planting, undo).
@@ -21,13 +23,17 @@ type Props<P, T> = {
   redirectTo?: string;
   variant?: keyof typeof buttonStyles;
   className?: string;
+  /** Optional leading icon (an <Icon />), shown in the idle state. */
+  icon?: ReactNode;
 };
 
 export function ConfirmButton<P, T>({
   action, payload, label, confirmLabel = t("common.confirmDelete"), pendingLabel = t("common.deleting"),
-  warning, redirectTo, variant = "danger", className,
+  warning, redirectTo, variant = "danger", className, icon,
 }: Props<P, T>) {
   const router = useRouter();
+  // Delete-style buttons get a trash icon unless the caller chose another
+  const leadingIcon = icon ?? (variant === "danger" ? <Icon icon={Trash2} size="sm" /> : null);
   const [armed, setArmed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -61,10 +67,12 @@ export function ConfirmButton<P, T>({
       {armed && warning && <p className="mb-2 rounded-xl bg-warning-soft px-3 py-2 text-sm text-warning">{warning}</p>}
       <button
         type="button"
+        aria-live="polite"
         onClick={onClick}
         disabled={pending}
         className={cx(armed ? buttonStyles.dangerSolid : buttonStyles[variant], "w-full")}
       >
+        {!pending && !armed && leadingIcon}
         {pending ? pendingLabel : armed ? confirmLabel : label}
       </button>
       {error && (

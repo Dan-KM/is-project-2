@@ -12,7 +12,7 @@ export function TankSummary({
   return (
     <div>
       <p className="text-sm text-muted">{t("water.balance")}</p>
-      <p className="mb-3 text-3xl font-semibold tracking-tight">{formatLitres(balance)}</p>
+      <p className="mb-3 text-3xl font-semibold tracking-tight tabular-nums">{formatLitres(balance)}</p>
       <div
         className="mb-2 flex h-3 overflow-hidden rounded-full bg-accent"
         role="img"

@@ -11,6 +11,8 @@
   --foreground: #1c241d;
   --muted: #5b6659;
   --border: #d9dcd2;
+  /* Form control outlines need 3:1 against the surface (WCAG 1.4.11) */
+  --input-border: #858f81;
   --primary: #2f6b3a;
   --primary-hover: #25562e;
   --primary-foreground: #ffffff;
@@ -31,6 +33,7 @@
     --foreground: #e9eee6;
     --muted: #a3ad9f;
     --border: #2f382f;
+    --input-border: #6d7768;
     --primary: #5fa86b;
     --primary-hover: #74b97f;
     --primary-foreground: #0d150e;
@@ -51,6 +54,7 @@
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
   --color-border: var(--border);
+  --color-input-border: var(--input-border);
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
@@ -72,6 +76,17 @@ body {
   font-family: var(--font-sans), system-ui, sans-serif;
   /* No grey flash when tapping on mobile */
   -webkit-tap-highlight-color: transparent;
+}
+
+/* No 300ms tap delay on touch screens; double-tap zoom still works on text */
+a,
+button,
+input,
+select,
+textarea,
+summary,
+label {
+  touch-action: manipulation;
 }
 
 /* 16px inputs stop iOS from zooming the page when a field is focused */

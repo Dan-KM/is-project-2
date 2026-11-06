@@ -1,10 +1,12 @@
+import { Plus, Tractor } from "lucide-react";
+import { Icon } from "@/components/icon";
 import Link from "next/link";
 import { Suspense } from "react";
 import { ButtonLink, Card, EmptyState, PageHeader, PageLoading } from "@/components/ui";
 import { formatNumber } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import { requirePageActor } from "@/lib/page";
-import { listFarms } from "@/lib/services/farms";
+import { listFarms } from "@/lib/services/farms"
 
 // Home: the farmer's farms. (The full dashboard replaces this in Phase 6.)
 
@@ -23,10 +25,10 @@ async function FarmList() {
     <>
       <PageHeader
         title={t("farm.list.title")}
-        action={farms.length > 0 ? <ButtonLink href="/farms/new">+ {t("farm.add")}</ButtonLink> : undefined}
+        action={farms.length > 0 ? <ButtonLink href="/farms/new" icon={<Icon icon={Plus} size="sm" />}>{t("farm.add")}</ButtonLink> : undefined}
       />
       {farms.length === 0 ? (
-        <EmptyState action={<ButtonLink href="/farms/new">{t("farm.add")}</ButtonLink>}>{t("farm.list.empty")}</EmptyState>
+        <EmptyState icon={<Icon icon={Tractor} size="xl" />} action={<ButtonLink href="/farms/new" icon={<Icon icon={Plus} size="sm" />}>{t("farm.add")}</ButtonLink>}>{t("farm.list.empty")}</EmptyState>
       ) : (
         <ul className="space-y-3">
           {farms.map((farm) => (

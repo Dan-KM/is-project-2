@@ -1,6 +1,8 @@
 "use client";
 
+import { LocateFixed } from "lucide-react";
 import { useState } from "react";
+import { Icon } from "@/components/icon";
 import { createFarmAction, updateFarmAction } from "@/app/actions/farms";
 import { ActionForm } from "@/components/form/action-form";
 import { HiddenField, NumberField, TextField } from "@/components/form/fields";
@@ -63,7 +65,8 @@ function LocationFields({ latitude, longitude }: { latitude?: string; longitude?
   return (
     <fieldset className="space-y-3 rounded-xl border border-border p-3">
       <button type="button" onClick={fillMyLocation} disabled={status === "locating"} className={`${buttonStyles.secondary} w-full`}>
-        📍 {status === "locating" ? t("farm.locating") : t("farm.useMyLocation")}
+        <Icon icon={LocateFixed} size="sm" />
+        {status === "locating" ? t("farm.locating") : t("farm.useMyLocation")}
       </button>
       {status === "failed" && <p className="text-sm text-warning">{t("farm.locationFailed")}</p>}
       <div className="grid grid-cols-2 items-end gap-3">

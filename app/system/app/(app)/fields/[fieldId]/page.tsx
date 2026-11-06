@@ -1,3 +1,5 @@
+import { ChevronLeft, Droplets, Plus } from "lucide-react";
+import { Icon } from "@/components/icon";
 import Link from "next/link";
 import { Suspense } from "react";
 import { deleteFieldAction } from "@/app/actions/farms";
@@ -53,8 +55,8 @@ async function FieldDetail({ params }: { params: PageProps<"/fields/[fieldId]">[
             },
           ]}
         />
-        <ButtonLink href={`/fields/${fieldId}/water`} className="mt-4 w-full">
-          💧 {t("water.manageField")}
+        <ButtonLink href={`/fields/${fieldId}/water`} className="mt-4 w-full" icon={<Icon icon={Droplets} />}>
+          {t("water.manageField")}
         </ButtonLink>
       </Card>
 
@@ -125,7 +127,7 @@ async function FieldDetail({ params }: { params: PageProps<"/fields/[fieldId]">[
       )}
 
       {/* ---- Soil readings ---- */}
-      <SectionTitle action={<ButtonLink href={`/fields/${fieldId}/readings/new`} variant="secondary">+ {t("reading.add")}</ButtonLink>}>
+      <SectionTitle action={<ButtonLink href={`/fields/${fieldId}/readings/new`} variant="secondary" icon={<Icon icon={Plus} size="sm" />}>{t("reading.add")}</ButtonLink>}>
         {t("reading.title")}
       </SectionTitle>
       {readings.length === 0 ? (
@@ -169,7 +171,9 @@ async function FieldDetail({ params }: { params: PageProps<"/fields/[fieldId]">[
         />
       </div>
       <p className="mt-4 text-center text-sm">
-        <Link href={`/farms/${field.farmId}`} className="text-primary">← {field.farm.farmName}</Link>
+        <Link href={`/farms/${field.farmId}`} className="inline-flex min-h-11 items-center gap-1 text-primary">
+          <Icon icon={ChevronLeft} size="sm" /> {field.farm.farmName}
+        </Link>
       </p>
     </>
   );

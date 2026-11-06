@@ -1,3 +1,5 @@
+import { CloudSun, Droplets, Plus } from "lucide-react";
+import { Icon } from "@/components/icon";
 import Link from "next/link";
 import { Suspense } from "react";
 import { deleteFarmAction } from "@/app/actions/farms";
@@ -46,7 +48,7 @@ async function FarmDetail({ params }: { params: PageProps<"/farms/[farmId]">["pa
         </p>
       </Card>
 
-      <SectionTitle action={<ButtonLink href={`/farms/${farmId}/fields/new`} variant="secondary">+ {t("field.add")}</ButtonLink>}>
+      <SectionTitle action={<ButtonLink href={`/farms/${farmId}/fields/new`} variant="secondary" icon={<Icon icon={Plus} size="sm" />}>{t("field.add")}</ButtonLink>}>
         {t("farm.fields")}
       </SectionTitle>
       {fields.length === 0 ? (
@@ -83,11 +85,11 @@ async function FarmDetail({ params }: { params: PageProps<"/farms/[farmId]">["pa
       )}
 
       <div className="mt-5 space-y-3">
-        <ButtonLink href={`/farms/${farmId}/water`} className="w-full">
-          💧 {t("water.farm.title")}
+        <ButtonLink href={`/farms/${farmId}/water`} className="w-full" icon={<Icon icon={Droplets} />}>
+          {t("water.farm.title")}
         </ButtonLink>
-        <ButtonLink href={`/farms/${farmId}/weather`} variant="secondary" className="w-full">
-          🌦 {t("farm.weatherLink")}
+        <ButtonLink href={`/farms/${farmId}/weather`} variant="secondary" className="w-full" icon={<Icon icon={CloudSun} />}>
+          {t("farm.weatherLink")}
         </ButtonLink>
         <ConfirmButton
           action={deleteFarmAction}

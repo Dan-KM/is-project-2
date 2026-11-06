@@ -1,11 +1,13 @@
 "use client";
 
+import { LoaderCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { createContext, use, useEffect, useState, useTransition, type FormEvent, type ReactNode } from "react";
+import { createContext, use, useEffect, useRef, useState, useTransition, type FormEvent, type ReactNode } from "react";
 import type { z } from "zod";
 import type { ActionResult } from "@/lib/actions/run";
 import { t } from "@/lib/i18n";
 import { nairobiLocalToIso } from "@/lib/time";
+import { Icon } from "@/components/icon";
 import { buttonStyles, cx } from "@/components/ui";
 
 // One form wrapper for every create/edit form:
@@ -46,12 +48,23 @@ export function ActionForm<T>({
   const [pending, startTransition] = useTransition();
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [message, setMessage] = useState<{ tone: "error" | "success"; text: string } | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  // Bumped on every failed submit, so the focus effect runs even when the
+  // same errors come back twice
+  const [failedSubmits, setFailedSubmits] = useState(0);
+
+  // After a failed submit, move focus to the first invalid field so keyboard
+  // and screen-reader users land on the problem (ui-ux-pro-max: focus-management)
+  useEffect(() => {
+    if (failedSubmits === 0) return;
+    formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+  }, [failedSubmits]);
 
   // A success note goes stale once anything else changes (e.g. "tank now has
   // 1,800 L" after an undo), so it fades after a few seconds. Errors stay.
   useEffect(() => {
     if (message?.tone !== "success") return;
-    const timer = setTimeout(() => setMessage(null), 6000);
+    const timer = setTimeout(() => setMessage(null), 5000);
     return () => clearTimeout(timer);
   }, [message]);
 
@@ -76,6 +89,7 @@ export function ActionForm<T>({
         }
         setFieldErrors(errors);
         setMessage({ tone: "error", text: t("common.fixErrors") });
+        setFailedSubmits((n) => n + 1);
         return;
       }
     }
@@ -86,6 +100,7 @@ export function ActionForm<T>({
       if (!result.ok) {
         setFieldErrors(result.fieldErrors ?? {});
         setMessage({ tone: "error", text: result.error });
+        if (result.fieldErrors) setFailedSubmits((n) => n + 1);
         return;
       }
       setFieldErrors({});
@@ -102,7 +117,7 @@ export function ActionForm<T>({
 
   return (
     <FormContext value={{ fieldErrors, pending }}>
-      <form onSubmit={onSubmit} noValidate className="space-y-4">
+      <form ref={formRef} onSubmit={onSubmit} noValidate className="space-y-4">
         {children}
         {message && (
           <p
@@ -115,7 +130,8 @@ export function ActionForm<T>({
             {message.text}
           </p>
         )}
-        <button type="submit" disabled={pending} className={cx(buttonStyles[submitVariant], "w-full")}>
+        <button type="submit" disabled={pending} aria-busy={pending} className={cx(buttonStyles[submitVariant], "w-full")}>
+          {pending && <Icon icon={LoaderCircle} size="sm" className="animate-spin motion-reduce:animate-none" />}
           {pending ? t("common.saving") : submitLabel}
         </button>
       </form>

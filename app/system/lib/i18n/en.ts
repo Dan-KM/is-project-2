@@ -10,6 +10,8 @@ export const en = {
   "nav.profile": "Profile",
   "nav.logout": "Log out",
   "nav.back": "Back",
+  "nav.account": "Account",
+  "nav.skipToContent": "Skip to main content",
 
   // ---- Common UI ----
   "common.save": "Save",
@@ -26,6 +28,9 @@ export const en = {
   "common.none": "None",
   "common.notes": "Notes",
   "common.fixErrors": "Please fix the highlighted fields.",
+  "common.showPassword": "Show password",
+  "common.hidePassword": "Hide password",
+  "common.addNote": "Add a note",
 
   // ---- Auth pages ----
   "auth.login.title": "Log in",
@@ -209,7 +214,7 @@ export const en = {
   "water.allocation.removeConfirm": "Tap again to remove",
   "water.allocation.removeWarning": "The field's remaining budget goes back to the farm's unallocated water.",
   "water.allocation.history": "Allocation history",
-  "water.allocation.period": "{from} → {until}",
+  "water.allocation.period": "{from} to {until}",
   "water.allocation.now": "now",
   "label.percentage": "Allocation (%)",
   "water.irrigate.title": "Record irrigation",
