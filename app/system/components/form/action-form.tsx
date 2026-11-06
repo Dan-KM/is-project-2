@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { createContext, use, useState, useTransition, type FormEvent, type ReactNode } from "react";
+import { createContext, use, useEffect, useState, useTransition, type FormEvent, type ReactNode } from "react";
 import type { z } from "zod";
 import type { ActionResult } from "@/lib/actions/run";
 import { t } from "@/lib/i18n";
@@ -34,16 +34,26 @@ type Props<T> = {
   successMessage?: string | ((data: T) => string);
   /** Clear the inputs after success (e.g. "add another" forms). */
   resetOnSuccess?: boolean;
+  /** Called after a successful save (e.g. to clear extra UI the form owns). */
+  onSuccess?: (data: T) => void;
   submitVariant?: keyof typeof buttonStyles;
 };
 
 export function ActionForm<T>({
-  action, schema, submitLabel, children, successHref, successMessage, resetOnSuccess, submitVariant = "primary",
+  action, schema, submitLabel, children, successHref, successMessage, resetOnSuccess, onSuccess, submitVariant = "primary",
 }: Props<T>) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [message, setMessage] = useState<{ tone: "error" | "success"; text: string } | null>(null);
+
+  // A success note goes stale once anything else changes (e.g. "tank now has
+  // 1,800 L" after an undo), so it fades after a few seconds. Errors stay.
+  useEffect(() => {
+    if (message?.tone !== "success") return;
+    const timer = setTimeout(() => setMessage(null), 6000);
+    return () => clearTimeout(timer);
+  }, [message]);
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -79,6 +89,7 @@ export function ActionForm<T>({
         return;
       }
       setFieldErrors({});
+      onSuccess?.(result.data);
       if (successHref) {
         router.push(typeof successHref === "function" ? successHref(result.data) : successHref);
         return;

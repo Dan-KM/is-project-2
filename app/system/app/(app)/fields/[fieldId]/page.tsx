@@ -53,6 +53,9 @@ async function FieldDetail({ params }: { params: PageProps<"/fields/[fieldId]">[
             },
           ]}
         />
+        <ButtonLink href={`/fields/${fieldId}/water`} className="mt-4 w-full">
+          💧 {t("water.manageField")}
+        </ButtonLink>
       </Card>
 
       {/* ---- Crop ---- */}

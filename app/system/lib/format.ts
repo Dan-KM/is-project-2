@@ -16,6 +16,14 @@ export function formatLitres(value: string | number | null | undefined): string 
   return formatted === "—" ? formatted : `${formatted} L`;
 }
 
+/** "+500 L" / "−200 L" for budget and ledger changes. */
+export function formatSignedLitres(value: string | number | null | undefined): string {
+  const n = Number(value);
+  if (value === null || value === undefined || !Number.isFinite(n)) return "—";
+  const sign = n > 0 ? "+" : n < 0 ? "−" : "";
+  return `${sign}${numberFormat.format(Math.abs(n))} L`;
+}
+
 /** Raw form value for an input's defaultValue: "500.00" → "500", null → "". */
 export function inputNumber(value: string | number | null | undefined): string {
   if (value === null || value === undefined || value === "") return "";

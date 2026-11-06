@@ -83,6 +83,9 @@ async function FarmDetail({ params }: { params: PageProps<"/farms/[farmId]">["pa
       )}
 
       <div className="mt-5 space-y-3">
+        <ButtonLink href={`/farms/${farmId}/water`} className="w-full">
+          💧 {t("water.farm.title")}
+        </ButtonLink>
         <ButtonLink href={`/farms/${farmId}/weather`} variant="secondary" className="w-full">
           🌦 {t("farm.weatherLink")}
         </ButtonLink>

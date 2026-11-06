@@ -80,6 +80,68 @@ export async function listLedger(actor: Actor, farmId: string, limit = 50) {
     .all();
 }
 
+export type LedgerEntry = {
+  transactionId: string;
+  ledgerSeq: number;
+  transactionType: "INITIAL_ENTRY" | "REFILL" | "IRRIGATION";
+  quantityLitres: number;
+  balanceAfterLitres: number;
+  transactionDate: string;
+  notes: string | null;
+  /** For irrigation rows: which field and crop used the water. */
+  fieldId: string | null;
+  fieldName: string | null;
+  cropName: string | null;
+};
+
+/**
+ * The farm ledger for the water page, newest first. A join (not the ORM) so
+ * each irrigation row can say which field and crop used the water.
+ */
+export async function listLedgerWithFields(actor: Actor, farmId: string, limit = 50): Promise<LedgerEntry[]> {
+  authorize(actor, "farm.read");
+  await assertFarmAccess(actor, farmId);
+  const rows = await db.runtime().query(
+    db.raw.sql`
+      SELECT wt.transaction_id, wt.ledger_seq, wt.transaction_type, wt.quantity_litres,
+             wt.current_quantity_litres, wt.transaction_date, COALESCE(wt.notes, '') AS notes,
+             f.field_id, COALESCE(f.field_name, '') AS field_name, COALESCE(c.crop_name, '') AS crop_name
+      FROM water_transaction wt
+      LEFT JOIN irrigation_event ie ON ie.transaction_id = wt.transaction_id
+      LEFT JOIN field_crop fc ON fc.field_crop_id = ie.field_crop_id
+      LEFT JOIN field f ON f.field_id = fc.field_id
+      LEFT JOIN crop c ON c.crop_id = fc.crop_id
+      WHERE wt.farm_id = ${farmId}::uuid
+      ORDER BY wt.ledger_seq DESC
+      LIMIT ${limit}`
+      .returnsRow({
+        transaction_id: "pg/uuid@1",
+        ledger_seq: "pg/int4@1",
+        transaction_type: "sql/varchar@1",
+        quantity_litres: "pg/numeric@1",
+        current_quantity_litres: "pg/numeric@1",
+        transaction_date: "pg/timestamptz-string@1",
+        notes: "pg/text@1",
+        field_id: { codecId: "pg/uuid@1", nullable: true },
+        field_name: "sql/varchar@1",
+        crop_name: "sql/varchar@1",
+      })
+      .build(),
+  );
+  return rows.map((r) => ({
+    transactionId: r.transaction_id,
+    ledgerSeq: r.ledger_seq,
+    transactionType: r.transaction_type as LedgerEntry["transactionType"],
+    quantityLitres: fromDbNumber(r.quantity_litres) ?? 0,
+    balanceAfterLitres: fromDbNumber(r.current_quantity_litres) ?? 0,
+    transactionDate: r.transaction_date,
+    notes: r.notes || null,
+    fieldId: r.field_id,
+    fieldName: r.field_name || null,
+    cropName: r.crop_name || null,
+  }));
+}
+
 async function assertTransactionAccess(actor: Actor, transactionId: string) {
   const txn = await db.orm.public.WaterTransaction.where({ transactionId }).first();
   if (!txn) throw new AppError("errors.notFound");
@@ -276,7 +338,10 @@ export async function listBudgetHistory(actor: Actor, fieldId: string, limit = 5
   await assertFieldAccess(actor, fieldId);
   return db.orm.public.FieldBudgetTransaction
     .where({ fieldId })
-    .orderBy((b) => b.createdAt.desc())
+    // Rows written by one SQL call share created_at (now() is per transaction).
+    // There, a replenishment (ALLOCATE) always follows the deduction (IRRIGATE)
+    // or release, so list ALLOCATE first to keep "newest first" correct.
+    .orderBy([(b) => b.createdAt.desc(), (b) => b.reason.asc()])
     .limit(limit)
     .all();
 }
