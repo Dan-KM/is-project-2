@@ -47,6 +47,15 @@ export function formatDateTime(value: string | Date | null | undefined): string 
   }).format(toDate(value));
 }
 
+/** "05:15" when the moment is today (Nairobi), otherwise the full date and time. Keeps badges short. */
+export function formatTimeOrDate(value: string | Date | null | undefined, now: Date = new Date()): string {
+  if (!value) return "—";
+  const date = toDate(value);
+  const day = (d: Date) => new Intl.DateTimeFormat("en-CA", { timeZone: FARM_TIME_ZONE }).format(d);
+  if (day(date) !== day(now)) return formatDateTime(date);
+  return new Intl.DateTimeFormat("en-KE", { timeZone: FARM_TIME_ZONE, hour: "2-digit", minute: "2-digit" }).format(date);
+}
+
 /** DATE columns ("2026-09-15") are calendar dates: format without shifting zones. */
 export function formatDate(value: string | null | undefined): string {
   if (!value) return "—";

@@ -41,6 +41,12 @@ export type AssembledFeatures = {
     fieldCropId: string;
     remainingBudgetLitres: number | null;
     weatherObservedAt: Date | null;
+    /** live / cached / stored / none: where the weather values came from */
+    weatherSource: "live" | "cached" | "stored" | "none";
+    /** The weather service couldn't be reached this time */
+    weatherFetchFailed: boolean;
+    /** Weather was too old to use, so all weather features were left out */
+    weatherTooOld: boolean;
   };
 };
 
@@ -151,6 +157,9 @@ export async function buildFeaturePayload(
       fieldCropId: planting.fieldCropId,
       remainingBudgetLitres: facts.remainingBudgetLitres,
       weatherObservedAt: weather.observedAt,
+      weatherSource: weather.snapshot.source,
+      weatherFetchFailed: weather.snapshot.fetchFailed,
+      weatherTooOld: weather.snapshot.observedAt !== null && !weather.snapshot.usableForPrediction,
     },
   };
 }

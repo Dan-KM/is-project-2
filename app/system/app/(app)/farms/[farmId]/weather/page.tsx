@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { deleteWeatherAction } from "@/app/actions/readings";
 import { ConfirmButton } from "@/components/form/confirm-button";
 import { ManualWeatherForm } from "@/components/forms/reading-forms";
+import { WeatherCardSkeleton, WeatherSection } from "@/components/weather/weather-card";
 import { Badge, Card, EmptyState, PageHeader, PageLoading, SectionTitle } from "@/components/ui";
 import { formatDateTime, formatNumber } from "@/lib/format";
 import { t } from "@/lib/i18n";
@@ -11,7 +12,7 @@ import { getFarm } from "@/lib/services/farms";
 import { listWeather } from "@/lib/services/weather";
 
 // Stored weather rows for a farm, plus manual entry as a fallback.
-// (Automatic fetching from Open-Meteo arrives in Phase 4.)
+// The live Open-Meteo card is at the top; manual entry is the fallback.
 
 export default function WeatherPage(props: PageProps<"/farms/[farmId]/weather">) {
   return (
@@ -29,6 +30,12 @@ async function Weather({ params }: { params: PageProps<"/farms/[farmId]/weather"
   return (
     <>
       <PageHeader title={t("weather.title")} back={{ href: `/farms/${farmId}`, label: farm.farmName }} />
+
+      <div className="mb-5">
+        <Suspense fallback={<WeatherCardSkeleton />}>
+          <WeatherSection actor={actor} farmId={farmId} />
+        </Suspense>
+      </div>
 
       <SectionTitle>{t("weather.manual.title")}</SectionTitle>
       <Card className="mb-5">

@@ -4,10 +4,10 @@ import { runAction, type ActionInput } from "@/lib/actions/run";
 import * as readings from "@/lib/services/readings";
 import * as weather from "@/lib/services/weather";
 import {
-  createReadingSchema, manualWeatherSchema, readingIdSchema, updateReadingSchema, weatherIdSchema,
+  createReadingSchema, farmIdSchema, manualWeatherSchema, readingIdSchema, updateReadingSchema, weatherIdSchema,
 } from "@/lib/validation/schemas";
 
-// Soil readings and manual weather entries (the API fetch comes in Phase 4).
+// Soil readings, weather refresh (Open-Meteo) and manual weather entries.
 
 export async function createReadingAction(input: ActionInput) {
   return runAction(createReadingSchema, input, async (actor, data) => {
@@ -25,6 +25,14 @@ export async function updateReadingAction(input: ActionInput) {
 
 export async function deleteReadingAction(input: ActionInput) {
   return runAction(readingIdSchema, input, (actor, data) => readings.deleteReading(actor, data.fieldConditionsId));
+}
+
+/** "Refresh" / "Try again" on the weather card: skips the cache and calls Open-Meteo. */
+export async function refreshWeatherAction(input: ActionInput) {
+  return runAction(farmIdSchema, input, async (actor, data) => {
+    const snap = await weather.getFarmWeather(actor, data.farmId, { force: true });
+    return { source: snap.source, fetchFailed: snap.fetchFailed, observedAt: snap.observedAt?.toISOString() ?? null };
+  });
 }
 
 export async function saveManualWeatherAction(input: ActionInput) {

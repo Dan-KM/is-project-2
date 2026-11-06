@@ -1,5 +1,6 @@
 import { CloudSun, Droplets, Plus } from "lucide-react";
 import { Icon } from "@/components/icon";
+import { WeatherCardSkeleton, WeatherSection } from "@/components/weather/weather-card";
 import Link from "next/link";
 import { Suspense } from "react";
 import { deleteFarmAction } from "@/app/actions/farms";
@@ -47,6 +48,13 @@ async function FarmDetail({ params }: { params: PageProps<"/farms/[farmId]">["pa
           {t("farm.areaUsed", { used: formatNumber(usedArea), total: formatNumber(farm.area) })}
         </p>
       </Card>
+
+      {/* Weather streams in on its own, so a slow weather service never delays the page */}
+      <div className="mb-5">
+        <Suspense fallback={<WeatherCardSkeleton />}>
+          <WeatherSection actor={actor} farmId={farmId} />
+        </Suspense>
+      </div>
 
       <SectionTitle action={<ButtonLink href={`/farms/${farmId}/fields/new`} variant="secondary" icon={<Icon icon={Plus} size="sm" />}>{t("field.add")}</ButtonLink>}>
         {t("farm.fields")}
