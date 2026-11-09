@@ -3,15 +3,16 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   checkIrrigationAction, editLedgerEntryAction, recordInitialWaterAction, recordIrrigationAction,
-  recordRefillAction, setAllocationAction, updateIrrigationNotesAction,
+  recordRefillAction, setAllocationAction, topUpFieldBudgetAction, updateIrrigationNotesAction,
 } from "@/app/actions/water";
 import { ActionForm } from "@/components/form/action-form";
 import { HiddenField, NumberField, TextAreaField, TextField } from "@/components/form/fields";
 import { cx } from "@/components/ui";
-import { formatLitres } from "@/lib/format";
+import { formatLitres, formatNumber } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import {
   allocationSchema, editLedgerEntrySchema, initialWaterSchema, irrigationNotesSchema, irrigationSchema, refillSchema,
+  topUpSchema,
 } from "@/lib/validation/schemas";
 
 // Water forms. Each submits to a server action that calls the matching SQL
@@ -73,7 +74,32 @@ export function AllocationForm({ fieldId, percentage }: { fieldId: string; perce
   );
 }
 
-type CheckState = { tone: "ok" | "warn"; text: string } | null;
+/**
+ * Move water from the farm reserve (unallocated pool) into this field's budget.
+ * No water enters the farm, so this is not a refill.
+ */
+export function TopUpForm({ fieldId, reserveLitres }: { fieldId: string; reserveLitres: number }) {
+  if (reserveLitres <= 0) return <p className="text-muted">{t("water.topUp.empty")}</p>;
+  return (
+    <ActionForm
+      action={topUpFieldBudgetAction}
+      schema={topUpSchema}
+      submitLabel={t("water.topUp.submit")}
+      successMessage={(d: { addedLitres: number; remainingBudgetLitres: number }) =>
+        t("water.topUp.done", { added: formatLitres(d.addedLitres), litres: formatLitres(d.remainingBudgetLitres) })}
+      resetOnSuccess
+    >
+      <HiddenField name="fieldId" value={fieldId} />
+      <NumberField
+        name="quantityLitres"
+        label={t("label.quantityLitres")}
+        hint={t("water.topUp.hint", { reserve: formatLitres(reserveLitres) })}
+      />
+    </ActionForm>
+  );
+}
+
+type CheckState = { tone: "ok" | "warn"; text: string; reserveShortfall: number | null } | null;
 
 /**
  * Record water used on the field's current crop. While the farmer types, the
@@ -110,7 +136,13 @@ export function IrrigationForm({ fieldCropId, now }: { fieldCropId: string; now:
       const result = await checkIrrigationAction({ fieldCropId, quantityLitres: amount });
       if (requestId !== latestCheck.current) return;
       setChecking(false);
-      if (result.ok) setCheck({ tone: result.data.allowed ? "ok" : "warn", text: result.data.message });
+      if (result.ok) {
+        setCheck({
+          tone: result.data.allowed ? "ok" : "warn",
+          text: result.data.message,
+          reserveShortfall: result.data.canUseReserve ? result.data.shortfallLitres : null,
+        });
+      }
     }, 400);
   }
 
@@ -143,6 +175,24 @@ export function IrrigationForm({ fieldCropId, now }: { fieldCropId: string; now:
         >
           {checking ? t("water.irrigate.checking") : check?.text}
         </p>
+      )}
+      {/* Over budget but the reserve can cover it: the farmer must opt in.
+          Keyed by the shortfall so a new amount starts unticked again. */}
+      {!checking && check?.reserveShortfall != null && (
+        <label key={check.reserveShortfall} className="flex min-h-12 cursor-pointer items-start gap-3 rounded-xl border border-border px-3 py-3">
+          <input
+            type="checkbox"
+            name="useReserve"
+            value="true"
+            className="mt-0.5 size-5 shrink-0 accent-primary"
+          />
+          <span>
+            <span className="block font-medium">
+              {t("water.irrigate.useReserve", { shortfall: formatNumber(check.reserveShortfall) })}
+            </span>
+            <span className="block text-sm text-muted">{t("water.irrigate.useReserveHint")}</span>
+          </span>
+        </label>
       )}
       <TextField name="irrigationDate" label={t("label.when")} type="datetime-local" defaultValue={now} />
       <TextAreaField name="notes" label={t("common.notes")} optional />

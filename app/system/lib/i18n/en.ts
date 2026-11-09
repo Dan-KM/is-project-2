@@ -289,6 +289,16 @@ export const en = {
   "water.reason.IRRIGATE": "Used for irrigation",
   "water.reason.RELEASE": "Returned to farm",
   "water.reason.allocateDetail": "{pct}% of {pool} unallocated",
+  "water.reason.TOP_UP": "Topped up",
+  "water.reason.BORROW": "Borrowed for irrigation",
+  "water.reason.topUpDetail": "From the farm reserve ({pool} unallocated)",
+  "water.irrigate.useReserve": "Use {shortfall} L from the farm reserve",
+  "water.irrigate.useReserveHint": "The farm's unallocated water covers what this field's budget can't.",
+  "water.topUp.title": "Top up budget",
+  "water.topUp.hint": "Move water from the farm reserve into this field's budget. The farm reserve has {reserve} unallocated.",
+  "water.topUp.empty": "The farm reserve is empty. Add water to the farm to top up this field.",
+  "water.topUp.submit": "Top up",
+  "water.topUp.done": "Topped up with {added}. Budget now {litres}.",
   "water.budgetAfter": "Budget after: {litres}",
 
   // ---- Profile ----
@@ -351,6 +361,7 @@ export const en = {
   "water.exceedsFieldBudget": "That's more than this field's remaining water budget ({budget} L).",
   "water.budgetExhausted": "This field's budget is used up and there is no unallocated water. Add water to the farm first.",
   "water.noAllocation": "This field has no water allocation yet. Give it an allocation first.",
+  "water.reserveTooSmall": "The farm reserve has only {available} L unallocated, but {needed} L is needed. Add water to the farm first.",
   "water.alreadyInitial": "This farm already has its first water entry. Record a refill instead.",
   "water.noInitialEntry": "This farm has no water recorded yet. Add the first water entry.",
   "water.undoOnlyLatest": "Only the most recent water entry can be undone.",
@@ -359,6 +370,7 @@ export const en = {
   "water.immutable": "Water amounts can't be changed. Undo the latest entry and record it again.",
   "water.allocationOver100": "Allocations on this farm would total {total}%. The maximum is 100%.",
   "water.status.OK": "Irrigation recorded.",
+  "water.status.borrowed": "{litres} L came from the farm reserve.",
   "water.status.BUDGET_REPLENISHED": "Budget used up and refilled with {litres} L from unallocated water.",
   "water.status.BUDGET_EXHAUSTED": "Budget used up and no unallocated water is left. This field can't irrigate until you add water.",
   "water.check.OK": "OK to irrigate.",
@@ -367,6 +379,8 @@ export const en = {
   "water.check.NO_ALLOCATION": "This field has no water allocation.",
   "water.check.INVALID_AMOUNT": "Enter an amount greater than 0.",
   "water.check.EXCEEDS_FIELD_BUDGET": "More than this field's budget. You can use up to {max} L.",
+  "water.check.RESERVE_AVAILABLE": "More than this field's budget ({budget} L). The other {shortfall} L can come from the farm reserve.",
+  "water.check.RESERVE_TOO_SMALL": "More than this field's budget ({budget} L), and the farm reserve only has {reserve} L. Add water to the farm first.",
   "water.check.EXCEEDS_FARM_BALANCE": "More than the farm's water. You can use up to {max} L.",
 
   // ---- Prediction ----

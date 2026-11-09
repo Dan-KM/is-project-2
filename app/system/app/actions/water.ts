@@ -5,7 +5,7 @@ import { t } from "@/lib/i18n";
 import * as water from "@/lib/services/water";
 import {
   allocationSchema, checkIrrigationSchema, editLedgerEntrySchema, farmIdSchema, initialWaterSchema,
-  irrigationNotesSchema, irrigationSchema, refillSchema,
+  irrigationNotesSchema, irrigationSchema, refillSchema, topUpSchema,
 } from "@/lib/validation/schemas";
 
 // Water operations. Each one calls a SQL function through the water service;
@@ -26,10 +26,14 @@ export async function checkIrrigationAction(input: ActionInput) {
     input,
     async (actor, data) => {
       const check = await water.checkIrrigation(actor, data);
-      return {
-        ...check,
-        message: t(`water.check.${check.reasonCode}`, { max: check.maxLitres }),
-      };
+      // Over the field budget: say whether the farm reserve can make up the rest
+      const overBudget = check.reasonCode === "EXCEEDS_FIELD_BUDGET";
+      const message = !overBudget
+        ? t(`water.check.${check.reasonCode}`, { max: check.maxLitres })
+        : check.canUseReserve
+          ? t("water.check.RESERVE_AVAILABLE", { budget: check.fieldBudgetLitres ?? 0, shortfall: check.shortfallLitres })
+          : t("water.check.RESERVE_TOO_SMALL", { budget: check.fieldBudgetLitres ?? 0, reserve: check.unallocatedLitres });
+      return { ...check, message };
     },
     { revalidate: false },
   );
@@ -38,7 +42,11 @@ export async function checkIrrigationAction(input: ActionInput) {
 export async function recordIrrigationAction(input: ActionInput) {
   return runAction(irrigationSchema, input, async (actor, data) => {
     const result = await water.recordIrrigation(actor, data);
-    return { ...result, message: t(`water.status.${result.statusCode}`, { litres: result.replenishedLitres }) };
+    const status = t(`water.status.${result.statusCode}`, { litres: result.replenishedLitres });
+    const message = result.borrowedLitres > 0
+      ? `${t("water.status.borrowed", { litres: result.borrowedLitres })} ${status}`
+      : status;
+    return { ...result, message };
   });
 }
 
@@ -58,6 +66,11 @@ export async function undoLatestWaterEntryAction(input: ActionInput) {
 
 export async function setAllocationAction(input: ActionInput) {
   return runAction(allocationSchema, input, (actor, data) => water.setAllocation(actor, data));
+}
+
+/** Move water from the farm reserve (unallocated pool) into one field's budget. */
+export async function topUpFieldBudgetAction(input: ActionInput) {
+  return runAction(topUpSchema, input, (actor, data) => water.topUpFieldBudget(actor, data));
 }
 
 export async function updateIrrigationNotesAction(input: ActionInput) {

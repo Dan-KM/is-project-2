@@ -125,6 +125,8 @@ export const irrigationSchema = z.object({
   quantityLitres: requiredNumber({ positive: true, max: 9_999_999_999 }),
   irrigationDate: optionalDateTime,
   notes,
+  // The farmer agreed to cover what the field budget can't from the farm reserve
+  useReserve: booleanish,
 });
 export const checkIrrigationSchema = z.object({ fieldCropId: id, quantityLitres: optionalNumber({}) });
 export const editLedgerEntrySchema = z.object({ transactionId: id, transactionDate: optionalDateTime, notes });
@@ -132,6 +134,10 @@ export const allocationSchema = z.object({
   fieldId: id,
   // Blank = remove the allocation (its budget returns to the unallocated pool)
   percentage: optionalNumber({ min: 0, max: 100 }),
+});
+export const topUpSchema = z.object({
+  fieldId: id,
+  quantityLitres: requiredNumber({ positive: true, max: 9_999_999_999 }),
 });
 export const irrigationNotesSchema = z.object({ eventId: id, notes });
 

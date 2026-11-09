@@ -51,6 +51,7 @@ export const PERMISSIONS = {
   "water.editEntry": ["farmer"],
   "water.undo": ["farmer"],
   "allocation.set": ["farmer"],
+  "budget.topUp": ["farmer"],
   "irrigation.editNotes": ["farmer"],
 
   // Predictions

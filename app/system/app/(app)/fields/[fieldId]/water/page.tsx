@@ -4,13 +4,14 @@ import { NoteSummary } from "@/components/note-summary";
 import { Suspense } from "react";
 import { setAllocationAction } from "@/app/actions/water";
 import { ConfirmButton } from "@/components/form/confirm-button";
-import { AllocationForm, IrrigationForm, IrrigationNoteForm } from "@/components/forms/water-forms";
+import { AllocationForm, IrrigationForm, IrrigationNoteForm, TopUpForm } from "@/components/forms/water-forms";
 import { Badge, ButtonLink, Card, DetailList, EmptyState, PageHeader, PageLoading, SectionTitle } from "@/components/ui";
 import { BudgetStatusBadge } from "@/components/water-summary";
 import { formatDateTime, formatLitres, formatNumber, formatSignedLitres, inputNumber } from "@/lib/format";
 import { t } from "@/lib/i18n";
 import { orNotFound, requirePageActor } from "@/lib/page";
 import { toNairobiLocalInput } from "@/lib/time";
+import { getFarmWaterStatus } from "@/lib/services/farms";
 import { getField, listFieldBudgets } from "@/lib/services/fields";
 import { getActivePlanting } from "@/lib/services/plantings";
 import { listAllocations, listBudgetHistory, listIrrigationEvents } from "@/lib/services/water";
@@ -28,12 +29,20 @@ export default function FieldWaterPage(props: PageProps<"/fields/[fieldId]/water
 
 const reasonTone = { ALLOCATE: "good", IRRIGATE: "warn", RELEASE: "neutral" } as const;
 
+// An ALLOCATE without a percentage was moved by hand from the farm reserve:
+// on its own it is a top-up, linked to a ledger row it covered an irrigation.
+function reasonLabel(h: { reason: string; allocationPercentage: unknown; waterTransactionId: string | null }) {
+  if (h.reason !== "ALLOCATE" || h.allocationPercentage !== null) return h.reason;
+  return h.waterTransactionId ? "BORROW" : "TOP_UP";
+}
+
 async function FieldWater({ params }: { params: PageProps<"/fields/[fieldId]/water">["params"] }) {
   const { fieldId } = await params;
   const actor = await requirePageActor();
   const field = await orNotFound(getField(actor, fieldId));
-  const [budgets, planting, allocations, events, history] = await Promise.all([
+  const [budgets, farmWater, planting, allocations, events, history] = await Promise.all([
     listFieldBudgets(actor, field.farmId),
+    getFarmWaterStatus(actor, field.farmId),
     getActivePlanting(actor, fieldId),
     listAllocations(actor, fieldId),
     listIrrigationEvents(actor, fieldId, 30),
@@ -87,6 +96,16 @@ async function FieldWater({ params }: { params: PageProps<"/fields/[fieldId]/wat
           <IrrigationForm fieldCropId={planting.fieldCropId} now={now} />
         )}
       </Card>
+
+      {/* ---- Top up from the farm reserve ---- */}
+      {status !== "NO_ALLOCATION" && (
+        <>
+          <SectionTitle>{t("water.topUp.title")}</SectionTitle>
+          <Card className="mb-5">
+            <TopUpForm fieldId={fieldId} reserveLitres={farmWater.unallocatedLitres} />
+          </Card>
+        </>
+      )}
 
       {/* ---- Allocation ---- */}
       <SectionTitle>{t("water.allocation.title")}</SectionTitle>
@@ -166,7 +185,7 @@ async function FieldWater({ params }: { params: PageProps<"/fields/[fieldId]/wat
               <Card>
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <Badge tone={reasonTone[h.reason as keyof typeof reasonTone] ?? "neutral"}>{t(`water.reason.${h.reason}`)}</Badge>
+                    <Badge tone={reasonTone[h.reason as keyof typeof reasonTone] ?? "neutral"}>{t(`water.reason.${reasonLabel(h)}`)}</Badge>
                     <p className="mt-1 text-sm text-muted">{formatDateTime(h.createdAt)}</p>
                   </div>
                   <p className="font-semibold tabular-nums">{formatSignedLitres(h.changeLitres)}</p>
@@ -177,6 +196,11 @@ async function FieldWater({ params }: { params: PageProps<"/fields/[fieldId]/wat
                       pct: formatNumber(h.allocationPercentage),
                       pool: formatLitres(h.unallocatedBeforeLitres),
                     })}
+                  </p>
+                )}
+                {reasonLabel(h) !== h.reason && (
+                  <p className="mt-1 text-sm">
+                    {t("water.reason.topUpDetail", { pool: formatLitres(h.unallocatedBeforeLitres) })}
                   </p>
                 )}
                 {h.budgetAfterLitres !== null && (
